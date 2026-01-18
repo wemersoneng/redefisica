@@ -20,6 +20,45 @@
         .row-search { display: flex; gap: 8px; }
         .search-box { flex: 1; background: white; border-radius: 8px; display: flex; align-items: center; padding: 0 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); height: 45px; }
         .search-box input { border: none; outline: none; width: 100%; font-size: 15px; margin-left: 8px; }
+
+.resultados-busca {
+    background: white;
+    max-height: 200px;
+    overflow-y: auto;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.item-busca {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.item-busca:hover {
+    background: #f0f7ff;
+}
+
+@keyframes pulsar-azul {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.5); opacity: 0.3; }
+    100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+.custom-pin.selecionado::after {
+    content: '';
+    position: absolute;
+    top: -25%; left: -25%;
+    width: 150%; height: 150%;
+    background: rgba(30, 144, 255, 0.4);
+    border-radius: 50%;
+    z-index: -1;
+    animation: pulsar-azul 1.5s infinite ease-in-out;
+}
         
         /* Filtros Scroll */
         .filter-bar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 10px; scrollbar-width: none; }
@@ -93,17 +132,15 @@
 
 <script>
 
-    // Lógica de Busca em Tempo Real com Lista de Sugestões
+// Lógica de Busca em Tempo Real (Atualizada: Nome + Modalidade + Lista)
 const inputBusca = document.getElementById('busca');
-const listaResultados = document.getElementById('lista-pesquisa'); // Certifique-se de ter este ID no HTML
+const listaResultados = document.getElementById('lista-pesquisa');
 
 inputBusca.addEventListener('input', function(e) {
     const termo = e.target.value.toLowerCase();
     
-    // Limpa a lista visual se o campo estiver vazio
     if (termo.length === 0) {
         listaResultados.innerHTML = "";
-        // Opcional: Mostrar todos os marcadores novamente
         escolas.forEach(esc => marcadores[esc.id].addTo(map));
         return;
     }
@@ -111,17 +148,21 @@ inputBusca.addEventListener('input', function(e) {
     let htmlLista = "";
 
     escolas.forEach(esc => {
-        const corresponde = esc.nome.toLowerCase().includes(termo);
+        // Busca por Nome OU por Modalidade (ex: digitar "integral")
+        const correspondeNome = esc.nome.toLowerCase().includes(termo);
+        const correspondeModalidade = esc.modalidade.toLowerCase().includes(termo);
         
-        // Filtro no Mapa
-        if (corresponde) {
+        if (correspondeNome || correspondeModalidade) {
             marcadores[esc.id].addTo(map);
             
-            // Filtro na Lista Visual (UX)
+            // Constrói a lista visual com detalhes extras
             htmlLista += `
                 <div class="item-busca" onclick="selecionarDaBusca(${esc.id})">
-                    <i class="fas ${getEstilo(esc.tipo).icone}"></i>
-                    <span>${esc.nome}</span>
+                    <i class="fas ${getEstilo(esc.tipo).icone}" style="color:${getEstilo(esc.tipo).cor}"></i>
+                    <div>
+                        <div style="font-weight: bold; font-size: 12px;">${esc.nome}</div>
+                        <div style="font-size: 10px; color: #666;">${esc.modalidade.toUpperCase()}</div>
+                    </div>
                 </div>
             `;
         } else {
@@ -131,6 +172,17 @@ inputBusca.addEventListener('input', function(e) {
 
     listaResultados.innerHTML = htmlLista;
 });
+
+// Função para centralizar e selecionar ao clicar na lista
+function selecionarDaBusca(id) {
+    const escola = escolas.find(e => e.id === id);
+    if(escola) {
+        map.setView([escola.lat, escola.lng], 16);
+        alternar(escola); // Isso ativa o pulsar azul e adiciona na lista de rotas
+        inputBusca.value = "";
+        listaResultados.innerHTML = "";
+    }
+}
 
 // Função para quando clicar no item da lista
 function selecionarDaBusca(id) {
@@ -151,13 +203,28 @@ function selecionarDaBusca(id) {
     
     // Dados atualizados com as novas categorias
     const escolas = [
-        { id: 1, nome: "ALAYDE OLIVEIRA CEI", lat: -7.22591, lng: -39.2990, tipo: "infantil" },
-        { id: 2, nome: "HELENA VIEIRA EMEI", lat: -7.21989, lng: -39.3379, tipo: "infantil" },
-        { id: 3, nome: "IRMÃ ANA TEREZINHA", lat: -7.20154, lng: -39.2706, tipo: "fundamental" },
-        { id: 4, nome: "PRÉDIO ADM SEINFRA", lat: -7.21000, lng: -39.3100, tipo: "equipamento" },
-        { id: 5, nome: "MARIA BERNADETE", lat: -7.23045, lng: -39.3203, tipo: "mista" },
-        { id: 6, nome: "ALMOXARIFADO CENTRAL", lat: -7.24000, lng: -39.3250, tipo: "equipamento" },
-        { id: 7, nome: "ANA AMÉLIA CEI", lat: -7.22167, lng: -39.3120, tipo: "infantil" }
+const escolas = [
+    { id: 1, nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780, tipo: "infantil", modalidade: "integral" },
+    { id: 2, nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100, tipo: "infantil", modalidade: "parcial" },
+    { id: 3, nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.27063735387350, tipo: "fundamental", modalidade: "parcial" },
+    { id: 4, nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.34014211541830, tipo: "infantil", modalidade: "integral" },
+    { id: 5, nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.32037563243490, tipo: "mista", modalidade: "integral" },
+    { id: 6, nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.30402430844510, tipo: "infantil", modalidade: "parcial" },
+    { id: 7, nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.31205352283060, tipo: "infantil", modalidade: "integral" },
+    { id: 8, nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.33808108252610, tipo: "mista", modalidade: "parcial" },
+    { id: 9, nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.28818071378180, tipo: "infantil", modalidade: "integral" },
+    { id: 10, nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.22127336881870, lng: -39.30495688808320, tipo: "infantil", modalidade: "parcial" },
+    { id: 11, nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.20976881643100, lng: -39.30436156071580, tipo: "fundamental", modalidade: "parcial" },
+    { id: 12, nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.25668606344500, lng: -39.33679274553820, tipo: "infantil", modalidade: "integral" },
+    { id: 13, nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.29138697222790, tipo: "infantil", modalidade: "parcial" },
+    { id: 14, nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.33499142833630, tipo: "infantil", modalidade: "parcial" },
+    { id: 15, nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.32813794297350, tipo: "infantil", modalidade: "integral" },
+    { id: 16, nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.33040228695120, tipo: "infantil", modalidade: "parcial" },
+    { id: 17, nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.32834106355910, tipo: "fundamental", modalidade: "integral" },
+    { id: 18, nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.35296136595570, tipo: "infantil", modalidade: "parcial" },
+    { id: 19, nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.29812692630730, tipo: "infantil", modalidade: "integral" },
+    { id: 20, nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.32457321991130, tipo: "infantil", modalidade: "parcial" }
+];
     ];
 
     let selecionadas = [];
@@ -178,20 +245,20 @@ function selecionarDaBusca(id) {
         }
     }
 
-    function criarIcone(escola, selecionada = false) {
-        const estilo = getEstilo(escola.tipo);
-        const size = selecionada ? 36 : 28;
-        const opacity = selecionada ? 1 : 0.7;
-
-        return L.divIcon({
-            className: 'custom-div-icon',
-            html: `<div class="custom-pin" style="background-color:${estilo.cor}; width:${size}px; height:${size}px; opacity:${opacity}; transform: rotate(-45deg);">
-                    <i class="fas ${estilo.icone}" style="transform: rotate(45deg); color:white; font-size:${size/2}px"></i>
-                   </div>`,
-            iconSize: [size, size],
-            iconAnchor: [size/2, size]
-        });
-    }
+function criarIcone(escola, selecionada = false) {
+    const estilo = getEstilo(escola.tipo);
+    const size = selecionada ? 34 : 26;
+    const classeSelecionada = selecionada ? 'selecionado' : '';
+    
+    return L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div class="custom-pin ${classeSelecionada}" style="background-color:${estilo.cor}; width:${size}px; height:${size}px; transform: rotate(-45deg); border:${selecionada?'3px solid gold':'2px solid white'}">
+                <i class="fas ${estilo.icone}" style="transform: rotate(45deg); color:white; font-size:${size/2}px"></i>
+               </div>`,
+        iconSize: [size, size],
+        iconAnchor: [size/2, size]
+    });
+}
 
     L.marker([pontoPartida.lat, pontoPartida.lng], {icon: L.icon({iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", iconSize:[25,41]})}).addTo(map);
 
