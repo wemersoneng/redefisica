@@ -2,38 +2,38 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
-    <title>Roteirização de Vistorias</title>
+    <title>Roteirização de Vistorias - Juazeiro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        body { margin:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; }
-        #topo { padding:15px; background:#1f4fd8; color:white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        #contador { font-size:14px; opacity:0.9; display: block; margin-top: 5px; }
-        #map { height:45vh; width: 100%; border-bottom: 2px solid #ddd; }
-        #painel { padding:15px; height: calc(55vh - 70px); overflow-y:auto; box-sizing: border-box; }
+        body { margin:0; font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; }
+        #topo { padding:15px; background:#1f4fd8; color:white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #contador { font-size:13px; opacity:0.9; display: block; margin-top: 4px; }
+        #map { height:40vh; width: 100%; }
+        #painel { padding:15px; height: 60vh; overflow-y:auto; box-sizing: border-box; }
         
-        .secao { background: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        h3 { margin-top: 0; font-size: 16px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .secao { background: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        h3 { margin: 0 0 10px 0; font-size: 16px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         
-        input[type="text"], input[type="number"] { width:100%; padding:10px; margin:8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        input[type="text"], input[type="number"] { width:100%; padding:10px; margin:8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
         
         .resultado-busca, .escola-item { display:flex; align-items:center; justify-content:space-between; padding:8px; border-bottom: 1px solid #eee; font-size: 13px; }
         .escola-item button { background:#ff4d4d; color:white; border:none; padding:5px 10px; border-radius: 4px; cursor:pointer; }
         
-        .rota-item { background: white; padding: 12px; margin-bottom: 12px; border-radius: 8px; border-left: 6px solid #1f4fd8; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .rota-item { background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; border-left: 6px solid #1f4fd8; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .rota-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .rota-titulo { font-weight: bold; color: #1f4fd8; }
-        .btn-google { background: #4285F4; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .rota-titulo { font-weight: bold; color: #1f4fd8; font-size: 14px; }
         
-        .lista-escolas-rota { margin: 0; padding-left: 20px; font-size: 13px; color: #555; }
-        .lista-escolas-rota li { margin-bottom: 4px; }
+        .btn-google { background: #4285F4; color: white; text-decoration: none; padding: 7px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
+        
+        .lista-escolas-rota { margin: 8px 0 0 0; padding-left: 20px; font-size: 13px; color: #444; }
+        .lista-escolas-rota li { margin-bottom: 5px; }
 
-        #gerar-rotas { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.3s; }
-        #gerar-rotas:hover { background: #218838; }
-        #gerar-rotas:disabled { background: #ccc; cursor: not-allowed; }
+        #gerar-rotas { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; }
+        #gerar-rotas:disabled { background: #ccc; }
     </style>
 </head>
 <body>
@@ -48,7 +48,7 @@
 <div id="painel">
     <div class="secao">
         <h3>1. Buscar Escola</h3>
-        <input type="text" id="busca" placeholder="Ex: Nome da escola...">
+        <input type="text" id="busca" placeholder="Digite o nome da escola...">
         <div id="resultados-busca"></div>
     </div>
 
@@ -59,112 +59,107 @@
 
     <div class="secao">
         <h3>3. Configuração</h3>
-        <label>Quantidade de Veículos (Rotas):</label>
+        <label>Número de Veículos:</label>
         <input type="number" id="num-rotas" min="1" value="2">
-        <label>Máximo de escolas por veículo:</label>
+        <label>Máximo de Escolas por Veículo:</label>
         <input type="number" id="max-escolas" min="1" value="5">
         <button id="gerar-rotas">Gerar Rotas Otimizadas</button>
     </div>
 
-    <div id="container-rotas">
-        </div>
+    <div id="container-rotas"></div>
 </div>
 
 <script>
-// Configurações Iniciais
 const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
+
+// Lista de escolas atualizada com IDs
 const escolas = [
-    { id:1, nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat:-7.22591062068273, lng:-39.29902763710780 },
-    { id:2, nome: "HELENA VIEIRA DOS SANTOS EMEI", lat:-7.21989883926041, lng:-39.33797808195100 },
-    { id:3, nome: "IRMÃ ANA TEREZINHA EMEI", lat:-7.20154173144659, lng:-39.27063735387350 },
-    { id:4, nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat:-7.22819953348265, lng:-39.34014211541830 },
-    { id:5, nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat:-7.23045717488514, lng:-39.32037563243490 },
-    { id:6, nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat:-7.23370145013908, lng:-39.30402430844510 }
+    { id: 1, nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
+    { id: 2, nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
+    { id: 3, nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.27063735387350 },
+    { id: 4, nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.34014211541830 },
+    { id: 5, nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.32037563243490 },
+    { id: 6, nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.30402430844510 },
+    { id: 7, nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.31205352283060 },
+    { id: 8, nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.33808108252610 },
+    { id: 9, nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.28818071378180 },
+    { id: 10, nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.22127336881870, lng: -39.30495688808320 },
+    { id: 11, nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.20976881643100, lng: -39.30436156071580 },
+    { id: 12, nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.25668606344500, lng: -39.33679274553820 },
+    { id: 13, nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.29138697222790 },
+    { id: 14, nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.33499142833630 },
+    { id: 15, nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.32813794297350 },
+    { id: 16, nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.33040228695120 },
+    { id: 17, nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.32834106355910 },
+    { id: 18, nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.35296136595570 },
+    { id: 19, nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.29812692630730 },
+    { id: 20, nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.32457321991130 }
 ];
 
 let escolasSelecionadas = [];
 let marcadores = {};
 let linhasRotas = [];
 
-// Inicializa Mapa
 const map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
-const iconePadrao = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
 const iconeVerde = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
-const iconeBase = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[22,36], iconAnchor:[11,36] });
+const iconeAzul = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
+const iconeVermelho = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[22,36], iconAnchor:[11,36] });
 
-L.marker([pontoPartida.lat, pontoPartida.lng], {icon:iconeBase}).addTo(map).bindPopup("<b>SEINFRA</b> (Ponto de Partida)");
+L.marker([pontoPartida.lat, pontoPartida.lng], {icon:iconeVermelho}).addTo(map).bindPopup("<b>SEINFRA</b>");
 
 escolas.forEach(e => {
-    const m = L.marker([e.lat, e.lng], {icon:iconePadrao}).addTo(map);
-    m.selecionado = false;
-    m.on("click", () => alternarEscola(e, true));
+    const m = L.marker([e.lat, e.lng], {icon:iconeAzul}).addTo(map);
+    m.on("click", () => alternarEscola(e));
     marcadores[e.id] = m;
 });
 
-function alternarEscola(e, darZoom = false) {
-    const m = marcadores[e.id];
-    const index = escolasSelecionadas.findIndex(item => item.id === e.id);
-
-    if (index === -1) {
+function alternarEscola(e) {
+    const idx = escolasSelecionadas.findIndex(s => s.id === e.id);
+    if (idx === -1) {
         escolasSelecionadas.push(e);
-        m.setIcon(iconeVerde);
-        m.selecionado = true;
+        marcadores[e.id].setIcon(iconeVerde);
     } else {
-        escolasSelecionadas.splice(index, 1);
-        m.setIcon(iconePadrao);
-        m.selecionado = false;
+        escolasSelecionadas.splice(idx, 1);
+        marcadores[e.id].setIcon(iconeAzul);
     }
-    
-    if(darZoom) map.setView([e.lat, e.lng], 15);
     atualizarUI();
-    atualizarBusca();
 }
 
 function atualizarUI() {
     document.getElementById("contador").textContent = `${escolasSelecionadas.length} escolas selecionadas`;
     const lista = document.getElementById("lista-escolas");
-    lista.innerHTML = "";
-    
-    if(escolasSelecionadas.length === 0) {
-        lista.innerHTML = "<em>Nenhuma selecionada.</em>";
-        return;
-    }
-
+    lista.innerHTML = escolasSelecionadas.length ? "" : "<em>Nenhuma selecionada.</em>";
     escolasSelecionadas.forEach(e => {
-        const div = document.createElement("div");
-        div.className = "escola-item";
-        div.innerHTML = `<span>${e.nome}</span><button onclick='alternarEscolaById(${e.id})'>Remover</button>`;
-        lista.appendChild(div);
+        const item = document.createElement("div");
+        item.className = "escola-item";
+        item.innerHTML = `<span>${e.nome}</span><button onclick='removerPorId(${e.id})'>Remover</button>`;
+        lista.appendChild(item);
     });
 }
 
-function alternarEscolaById(id) {
+function removerPorId(id) {
     const escola = escolas.find(e => e.id === id);
     alternarEscola(escola);
 }
 
 function atualizarBusca() {
     const termo = document.getElementById("busca").value.toLowerCase();
-    const resultados = document.getElementById("resultados-busca");
-    resultados.innerHTML = "";
-    if(termo.length < 2) return;
-
+    const res = document.getElementById("resultados-busca");
+    res.innerHTML = "";
+    if (termo.length < 2) return;
     escolas.filter(e => e.nome.toLowerCase().includes(termo)).forEach(e => {
         const div = document.createElement("div");
         div.className = "resultado-busca";
-        const isChecked = escolasSelecionadas.some(s => s.id === e.id);
-        div.innerHTML = `
-            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange='alternarEscolaById(${e.id})'>
-            <label>${e.nome}</label>
-        `;
-        resultados.appendChild(div);
+        const check = escolasSelecionadas.some(s => s.id === e.id) ? "checked" : "";
+        div.innerHTML = `<input type="checkbox" ${check} onchange='removerPorId(${e.id})'> <label>${e.nome}</label>`;
+        res.appendChild(div);
     });
 }
 document.getElementById("busca").addEventListener("input", atualizarBusca);
 
-// --- FUNÇÃO PARA DECODIFICAR O TRAÇADO DAS RUAS ---
+// Decodifica geometria para traçado nas ruas
 function decodePolyline(str) {
     let index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null, lat_change, lng_change;
     while (index < str.length) {
@@ -179,83 +174,70 @@ function decodePolyline(str) {
     return coordinates;
 }
 
-// --- GERAÇÃO DE ROTAS ---
 async function gerarRotas() {
-    if(escolasSelecionadas.length === 0) return alert("Selecione as escolas primeiro.");
+    if (!escolasSelecionadas.length) return alert("Selecione escolas!");
+    const btn = document.getElementById("gerar-rotas");
+    btn.disabled = true; btn.textContent = "Calculando...";
     
-    // Limpa rotas anteriores do mapa
     linhasRotas.forEach(l => map.removeLayer(l));
     linhasRotas = [];
 
-    const btn = document.getElementById("gerar-rotas");
-    btn.disabled = true; btn.textContent = "Otimizando Trajeto...";
-
     const jobs = escolasSelecionadas.map(e => ({ id: e.id, location: [e.lng, e.lat], amount: [1] }));
-    const nRotas = parseInt(document.getElementById("num-rotas").value);
-    const max = parseInt(document.getElementById("max-escolas").value);
-    
-    const vehicles = [];
-    for(let i=0; i<nRotas; i++) {
-        vehicles.push({ id: i, profile: "driving-car", start: [pontoPartida.lng, pontoPartida.lat], end: [pontoPartida.lng, pontoPartida.lat], capacity: [max] });
-    }
+    const n = parseInt(document.getElementById("num-rotas").value);
+    const m = parseInt(document.getElementById("max-escolas").value);
+    const vehicles = Array.from({length: n}, (_, i) => ({ id: i, profile: "driving-car", start: [pontoPartida.lng, pontoPartida.lat], end: [pontoPartida.lng, pontoPartida.lat], capacity: [m] }));
 
     try {
-        const resp = await fetch("https://redefisica.onrender.com/rotas", {
+        const r = await fetch("https://redefisica.onrender.com/rotas", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ jobs, vehicles })
         });
-        const data = await resp.json();
-        btn.disabled = false; btn.textContent = "Gerar Rotas Otimizadas";
-
-        if(data.error) throw new Error(data.error);
+        const data = await r.json();
+        if (data.error) throw new Error(data.error);
 
         const container = document.getElementById("container-rotas");
-        container.innerHTML = "<h3>Rotas Calculadas</h3>";
+        container.innerHTML = "<h3>Rotas Geradas</h3>";
 
         data.routes.forEach((rota, i) => {
-            const cor = `hsl(${(i * 130) % 360}, 70%, 45%)`;
+            const cor = `hsl(${(i * 137) % 360}, 70%, 45%)`;
             
-            // 1. Identificar Escolas na ordem da rota
-            const stepsEscolas = rota.steps.filter(s => s.type === "job");
-            const listaEscolasHtml = stepsEscolas.map(s => {
-                const esc = escolas.find(e => e.id === s.job_id);
-                return `<li>${esc.nome}</li>`;
-            }).join("");
+            // Lista ordenada de escolas nesta rota (Proteção contra undefined)
+            const listaItens = rota.steps
+                .filter(s => s.type === "job")
+                .map(s => {
+                    const esc = escolas.find(e => e.id === Number(s.job_id));
+                    return esc ? `<li>${esc.nome}</li>` : `<li>Escola ID ${s.job_id} não encontrada</li>`;
+                }).join("");
 
-            // 2. Criar Link do Google Maps
-            // Formato: /dir/Origem/Parada1/Parada2/Destino
-            const coordsLink = rota.steps.map(s => `${s.location[1]},${s.location[0]}`);
-            const urlGoogle = `https://www.google.com/maps/dir/${coordsLink.join("/")}`;
+            // Link Google Maps otimizado
+            const coordsMap = rota.steps.map(s => `${s.location[1]},${s.location[0]}`);
+            const urlGoogle = `https://www.google.com/maps/dir/${coordsMap.join("/")}`;
 
-            // 3. Adicionar na UI
-            const divRota = document.createElement("div");
-            divRota.className = "rota-item";
-            divRota.style.borderLeftColor = cor;
-            divRota.innerHTML = `
+            const card = document.createElement("div");
+            card.className = "rota-item";
+            card.style.borderLeftColor = cor;
+            card.innerHTML = `
                 <div class="rota-header">
                     <span class="rota-titulo">ROTA ${i+1} (${(rota.distance/1000).toFixed(1)} km)</span>
-                    <a href="${urlGoogle}" target="_blank" class="btn-google">Google Maps ↗</a>
+                    <a href="${urlGoogle}" target="_blank" class="btn-google">Abrir no GPS ↗</a>
                 </div>
-                <ol class="lista-escolas-rota">${listaEscolasHtml}</ol>
+                <ol class="lista-escolas-rota">${listaItens}</ol>
             `;
-            container.appendChild(divRota);
+            container.appendChild(card);
 
-            // 4. Desenhar no Mapa (Traçado Real)
-            if(rota.geometry) {
-                const caminhosReal = decodePolyline(rota.geometry);
-                const poly = L.polyline(caminhosReal, {color: cor, weight: 6, opacity: 0.8}).addTo(map);
+            if (rota.geometry) {
+                const pts = decodePolyline(rota.geometry);
+                const poly = L.polyline(pts, {color: cor, weight: 5, opacity: 0.8}).addTo(map);
                 linhasRotas.push(poly);
             }
         });
 
-        // Ajustar zoom para ver todas as rotas
-        if(linhasRotas.length > 0) {
-            map.fitBounds(new L.featureGroup(linhasRotas).getBounds());
-        }
-
-    } catch (e) {
-        alert("Erro: " + e.message);
+        if (linhasRotas.length) map.fitBounds(new L.featureGroup(linhasRotas).getBounds());
+    } catch (err) {
+        alert("Erro na API. Verifique se o servidor no Render está ativo.");
+        console.error(err);
+    } finally {
         btn.disabled = false; btn.textContent = "Gerar Rotas Otimizadas";
     }
 }
