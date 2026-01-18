@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<title>Roteirização de Vistorias - ORS</title>
+<meta charset="UTF-8">
+<title>Roteirização de Vistorias</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- Leaflet -->
@@ -28,7 +28,7 @@ input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0
 
 <div id="topo">
   <strong>
-    Roteirização de Vistorias — AAAAAAAAAAAAA<br>
+    Roteirização de Vistorias — Educação<br>
     <span id="contador">0 escolas selecionadas</span>
   </strong>
 </div>
@@ -58,8 +58,9 @@ input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0
 </div>
 
 <script>
-// ========================= DADOS =========================
 const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
+
+// Lista de escolas
 const escolas = [
   { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
   { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
@@ -85,9 +86,8 @@ const escolas = [
 
 const escolasSelecionadas = [];
 const marcadores = {};
-let rotaLayers = [];
+const layersRotas = [];
 
-// ========================= MAPA =========================
 const map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
@@ -95,18 +95,17 @@ const iconeEscola = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/image
 const iconeSelecionado = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
 const iconeSEINFRA = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[22,36], iconAnchor:[11,36] });
 
-L.marker([pontoPartida.lat,pontoPartida.lng], {icon:iconeSEINFRA}).addTo(map).bindPopup("SEINFRA");
+L.marker([pontoPartida.lat, pontoPartida.lng], {icon:iconeSEINFRA}).addTo(map).bindPopup("SEINFRA");
 
 escolas.forEach(e=>{
-  const m=L.marker([e.lat,e.lng],{icon:iconeEscola}).addTo(map);
-  m.selecionado=false;
-  m.on("click",()=>alternarEscola(e,true));
+  const m = L.marker([e.lat,e.lng],{icon:iconeEscola}).addTo(map);
+  m.selecionado = false;
+  m.on("click",()=> alternarEscola(e,true));
   marcadores[e.nome]=m;
 });
 
-// ========================= FUNÇÕES =========================
 function alternarEscola(e,zoom=false){
-  const m=marcadores[e.nome];
+  const m = marcadores[e.nome];
   if(!m.selecionado){ m.selecionado=true; m.setIcon(iconeSelecionado); escolasSelecionadas.push(e); }
   else{ removerEscola(e.nome); return; }
   if(zoom) map.setView([e.lat,e.lng],16);
@@ -114,20 +113,20 @@ function alternarEscola(e,zoom=false){
 }
 
 function removerEscola(nome){
-  const idx=escolasSelecionadas.findIndex(e=>e.nome===nome);
+  const idx = escolasSelecionadas.findIndex(e=>e.nome===nome);
   if(idx!=-1) escolasSelecionadas.splice(idx,1);
-  const m=marcadores[nome]; m.selecionado=false; m.setIcon(iconeEscola);
+  const m = marcadores[nome]; m.selecionado=false; m.setIcon(iconeEscola);
   atualizarUI(); atualizarBusca();
 }
 
 function atualizarUI(){
-  document.getElementById("contador").textContent=`${escolasSelecionadas.length} escolas selecionadas`;
-  const lista=document.getElementById("lista-escolas"); lista.innerHTML="";
+  document.getElementById("contador").textContent = `${escolasSelecionadas.length} escolas selecionadas`;
+  const lista = document.getElementById("lista-escolas"); lista.innerHTML="";
   if(escolasSelecionadas.length==0){ lista.innerHTML="<em>Nenhuma escola selecionada.</em>"; return; }
   escolasSelecionadas.forEach(e=>{
-    const div=document.createElement("div"); div.className="escola-item";
-    const nome=document.createElement("span"); nome.textContent=e.nome; nome.onclick=()=>map.setView([e.lat,e.lng],16);
-    const btn=document.createElement("button"); btn.textContent="Remover"; btn.onclick=()=>removerEscola(e.nome);
+    const div = document.createElement("div"); div.className="escola-item";
+    const nome = document.createElement("span"); nome.textContent=e.nome; nome.onclick=()=>map.setView([e.lat,e.lng],16);
+    const btn = document.createElement("button"); btn.textContent="Remover"; btn.onclick=()=>removerEscola(e.nome);
     div.appendChild(nome); div.appendChild(btn); lista.appendChild(div);
   });
 }
@@ -147,68 +146,73 @@ function atualizarBusca(){
 
 document.getElementById("busca").addEventListener("input", atualizarBusca);
 
-// ========================= GERAR ROTAS COM ORS =========================
+// =================== GERAR ROTAS ===================
 async function gerarRotas(){
-  if(escolasSelecionadas.length==0){ alert("Selecione ao menos uma escola"); return; }
-  const nRotas=parseInt(document.getElementById("num-rotas").value);
-  const maxEscolas=parseInt(document.getElementById("max-escolas").value);
+  const nRotas = parseInt(document.getElementById("num-rotas").value);
+  const maxEscolas = parseInt(document.getElementById("max-escolas").value);
 
-  // Limpa rotas anteriores
-  rotaLayers.forEach(l=>map.removeLayer(l));
-  rotaLayers=[];
+  if(escolasSelecionadas.length===0){ alert("Selecione ao menos uma escola"); return; }
 
-  // Monta payload
+  // Limpa rotas antigas
+  layersRotas.forEach(l => map.removeLayer(l));
+  layersRotas.length=0;
+  const container = document.getElementById("rotas-geradas");
+  container.innerHTML="";
+
+  // Monta payload ORS
   const jobs = escolasSelecionadas.map((e,i)=>({id:i+1, location:[e.lng,e.lat], name:e.nome, service:0}));
-  const vehicles = Array.from({length:nRotas},(_,i)=>({id:i+1,profile: "driving-car",start:[pontoPartida.lng,pontoPartida.lat],end:[pontoPartida.lng,pontoPartida.lat],capacity:[maxEscolas]}));
-  const payload = {jobs, vehicles, options: { g: true }, profile: "driving-car"};
+  const vehicles = Array.from({length:nRotas},(_,i)=>({id:i+1,start:[pontoPartida.lng,pontoPartida.lat],end:[pontoPartida.lng,pontoPartida.lat],capacity:[maxEscolas]}));
+  const payload = { jobs, vehicles };
 
-
-  try{
-    const resp = await fetch("https://api.openrouteservice.org/optimization",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json", "Authorization":"eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImMwNzA3NmE4OGU1ZjQwNTRhNTI4M2ZkNzlmMTY4Y2Y2IiwiaCI6Im11cm11cjY0In0=" },
+  try {
+    const resp = await fetch("http://localhost:3000/gerar-rotas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
+
     const data = await resp.json();
-    console.log(data);
     if(data.error){ alert("Erro na API: "+JSON.stringify(data.error)); return; }
 
+    // Mostra rotas no painel e mapa
+    data.routes.forEach((rota,i)=>{
+      const div = document.createElement("div"); div.className="rota-item";
+      const totalKm = (rota.distance/1000).toFixed(2);
+      div.innerHTML=`<span>Rota ${i+1} — Estimativa: ${totalKm} km</span>`;
 
-    const container=document.getElementById("rotas-geradas"); container.innerHTML="";
-
-    data.routes.forEach((r,i)=>{
-      const div=document.createElement("div"); div.className="rota-item";
-      div.innerHTML=`<span>Rota ${i+1} — Distância: ${(r.distance/1000).toFixed(2)} km — Tempo: ${(r.duration/60).toFixed(1)} min</span>`;
-
-      // Lista de escolas
-      r.activities.filter(a=>a.type==="job").forEach(a=>{
-        const job = jobs.find(j=>j.id===a.job);
-        const s=document.createElement("span"); s.textContent=job.name; div.appendChild(s);
+      rota.steps.forEach(step=>{
+        const s = document.createElement("span");
+        s.textContent = step.job? escolasSelecionadas.find(e=>e.nome===step.job.name).nome : "Origem";
+        div.appendChild(s);
       });
 
-      // Highlight da rota no mapa
-      const coords = r.geometry.coordinates.map(c=>[c[1],c[0]]);
-      const layer = L.polyline(coords,{color:["blue","green","red","orange","purple"][i%5],weight:5,opacity:0.7}).addTo(map);
-      rotaLayers.push(layer);
-
-      // Link Google Maps
-      let gLink = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}`;
-      r.activities.filter(a=>a.type==="job").forEach(a=>{
-        const job = jobs.find(j=>j.id===a.job);
-        gLink += `/${job.location[1]},${job.location[0]}`;
+      // Google Maps
+      let link = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}`;
+      rota.steps.forEach(step=>{
+        if(step.job) link += `/${step.job.location[1]},${step.job.location[0]}`;
       });
-      gLink += `/${pontoPartida.lat},${pontoPartida.lng}`;
-      const btn = document.createElement("a"); btn.href=gLink; btn.target="_blank"; btn.textContent="Abrir rota no Maps";
+      link += `/${pontoPartida.lat},${pontoPartida.lng}`;
+      const btn = document.createElement("a"); btn.href=link; btn.target="_blank"; btn.textContent="Abrir rota no Maps";
       btn.style.display="inline-block"; btn.style.marginTop="6px"; btn.style.color="white"; btn.style.background="#1f4fd8"; btn.style.padding="4px 8px"; btn.style.borderRadius="4px";
       div.appendChild(btn);
-
       container.appendChild(div);
+
+      // Highlight no mapa
+      const coords = rota.steps.map(s => s.job ? [s.job.location[1], s.job.location[0]] : [pontoPartida.lat, pontoPartida.lng]);
+      coords.unshift([pontoPartida.lat, pontoPartida.lng]);
+      coords.push([pontoPartida.lat, pontoPartida.lng]);
+      const poly = L.polyline(coords, {color: ["red","green","blue","orange"][i%4], weight:4}).addTo(map);
+      layersRotas.push(poly);
     });
 
-  }catch(e){ console.error(e); alert("Erro na comunicação com a API"); }
+  } catch(err){
+    console.error(err);
+    alert("Erro na comunicação com o backend");
+  }
 }
 
 document.getElementById("gerar-rotas").addEventListener("click", gerarRotas);
 </script>
+
 </body>
 </html>
