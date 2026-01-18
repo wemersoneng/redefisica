@@ -10,25 +10,25 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-body { margin:0; font-family: Arial, Helvetica, sans-serif; }
-#topo { padding:10px; background:#1f4fd8; color:white; font-size:16px; }
-#contador { font-size:14px; opacity:0.9; }
-#map { height:50vh; }
-#painel { padding:10px; max-height:50vh; overflow-y:auto; background:#f5f5f5; }
-input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0; font-size:14px; }
-.resultado-busca, .escola-item, .rota-item { display:flex; align-items:center; justify-content:space-between; padding:6px; margin-bottom:4px; background:white; border-radius:4px; font-size:14px; }
-.resultado-busca label { flex:1; margin-left:6px; cursor:pointer; }
-.escola-item button { background:#d9534f; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
-.escola-item span { cursor:pointer; }
-.rota-item { flex-direction:column; background:#e3e3e3; padding:8px; }
-.rota-item span { font-weight:bold; margin-bottom:4px; }
+  body { margin:0; font-family: Arial, Helvetica, sans-serif; }
+  #topo { padding:10px; background:#1f4fd8; color:white; font-size:16px; }
+  #contador { font-size:14px; opacity:0.9; }
+  #map { height:50vh; }
+  #painel { padding:10px; max-height:50vh; overflow-y:auto; background:#f5f5f5; }
+  input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0; font-size:14px; }
+  .resultado-busca, .escola-item, .rota-item { display:flex; align-items:center; justify-content:space-between; padding:6px; margin-bottom:4px; background:white; border-radius:4px; font-size:14px; }
+  .resultado-busca label { flex:1; margin-left:6px; cursor:pointer; }
+  .escola-item button { background:#d9534f; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
+  .escola-item span { cursor:pointer; }
+  .rota-item { flex-direction:column; background:#e3e3e3; padding:8px; margin-bottom:8px; }
+  .rota-item span { font-weight:bold; margin-bottom:4px; }
 </style>
 </head>
 <body>
 
 <div id="topo">
   <strong>
-    Roteirização de Vistorias<br>
+    Roteirização de Vistorias — Educação<br>
     <span id="contador">0 escolas selecionadas</span>
   </strong>
 </div>
@@ -58,21 +58,20 @@ input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0
 </div>
 
 <script>
-// ========================= CONFIGURAÇÃO =========================
 const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
 const escolas = [
-  { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
-  { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
-  { nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.27063735387350 },
-  { nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.34014211541830 },
-  { nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.32037563243490 }
-  // ... adicione mais escolas aqui
+  { id:1, nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat:-7.22591062068273, lng:-39.29902763710780 },
+  { id:2, nome: "HELENA VIEIRA DOS SANTOS EMEI", lat:-7.21989883926041, lng:-39.33797808195100 },
+  { id:3, nome: "IRMÃ ANA TEREZINHA EMEI", lat:-7.20154173144659, lng:-39.27063735387350 },
+  { id:4, nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat:-7.22819953348265, lng:-39.34014211541830 },
+  { id:5, nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat:-7.23045717488514, lng:-39.32037563243490 },
+  { id:6, nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat:-7.23370145013908, lng:-39.30402430844510 }
 ];
 
 const escolasSelecionadas = [];
 const marcadores = {};
+const linhasRotas = [];
 
-// ========================= MAPA =========================
 const map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
@@ -89,16 +88,9 @@ escolas.forEach(e=>{
   marcadores[e.nome]=m;
 });
 
-// ========================= FUNÇÕES =========================
-function distanciaKm(a,b){
-  const R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
-  const c=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
-  return 2*R*Math.atan2(Math.sqrt(c),Math.sqrt(1-c));
-}
-
 function alternarEscola(e,zoom=false){
   const m=marcadores[e.nome];
-  if(!m.selecionado){ m.selecionado=true; m.setIcon(iconeSelecionado); escolasSelecionadas.push(e); }
+  if(!m.selecionado){ m.selecionado=true; escolasSelecionadas.push(e); m.setIcon(iconeSelecionado);}
   else{ removerEscola(e.nome); return; }
   if(zoom) map.setView([e.lat,e.lng],16);
   atualizarUI(); atualizarBusca();
@@ -135,49 +127,60 @@ function atualizarBusca(){
     div.appendChild(cb); div.appendChild(label); resultados.appendChild(div);
   });
 }
-
 document.getElementById("busca").addEventListener("input", atualizarBusca);
 
-// ========================= GERAR ROTAS VIA BACKEND =========================
+// ========================= ROTAS =========================
 async function gerarRotas(){
+  if(linhasRotas.length>0){ linhasRotas.forEach(l=>map.removeLayer(l)); linhasRotas.length=0; }
+
   const nRotas=parseInt(document.getElementById("num-rotas").value);
   const maxEscolas=parseInt(document.getElementById("max-escolas").value);
-  if(escolasSelecionadas.length==0){ alert("Selecione ao menos uma escola"); return; }
-
-  const jobs = escolasSelecionadas.map((e,i)=>({id:i+1, location:[e.lng,e.lat], name:e.nome, service:0}));
-  const vehicles = Array.from({length:nRotas},(_,i)=>({id:i+1,profile: "driving-car",start:[pontoPartida.lng,pontoPartida.lat],end:[pontoPartida.lng,pontoPartida.lat],capacity:[maxEscolas]}));
-  const payload = {jobs, vehicles};
+  if(escolasSelecionadas.length===0){ alert("Selecione ao menos uma escola"); return; }
 
   try{
-    const resp = await fetch("https://redefisica.onrender.com/rotas", {
+    const resp = await fetch("/rotas", {
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ escolas: escolasSelecionadas, nRotas, maxEscolas })
     });
     const data = await resp.json();
-    if(data.error){ alert("Erro na API: "+JSON.stringify(data.error)); return; }
-    desenharRotas(data.routes);
-  } catch(err){
-    console.error(err);
-    alert("Erro na comunicação com o backend");
-  }
-}
+    if(data.error){ alert("Erro na API: "+data.error); return; }
 
-function desenharRotas(rotas){
-  const container = document.getElementById("rotas-geradas");
-  container.innerHTML="";
-  rotas.forEach((r,i)=>{
-    const div=document.createElement("div"); div.className="rota-item";
-    div.innerHTML=`<span>Rota ${i+1}</span>`;
-    r.steps.forEach(s=>{
-      const sdiv=document.createElement("span"); sdiv.textContent=s.name; div.appendChild(sdiv);
+    // Limpa rotas antigas
+    const container=document.getElementById("rotas-geradas"); container.innerHTML="";
+
+    data.routes.forEach((rota,i)=>{
+      const rotaElement = document.createElement("div"); rotaElement.className="rota-item";
+
+      // Pega só as steps do tipo job
+      const schoolsNaRota = rota.steps.filter(s=>s.type==="job").map(s=>{
+        return escolasSelecionadas.find(e=>e.id===s.job_id);
+      });
+
+      // Distância total
+      const totalKm = rota.distance/1000;
+
+      rotaElement.innerHTML=`<span>Rota ${i+1} — Estimativa: ${totalKm.toFixed(2)} km</span>`;
+
+      schoolsNaRota.forEach(e=>{
+        const s=document.createElement("span"); s.textContent=e.nome; rotaElement.appendChild(s);
+      });
+
+      // Desenha rota no mapa
+      const coords = rota.steps.map(s=>[s.location[1], s.location[0]]); // [lat,lng]
+      const poly = L.polyline(coords, {color: `hsl(${i*60}, 70%, 50%)`, weight:4}).addTo(map);
+      linhasRotas.push(poly);
+
+      container.appendChild(rotaElement);
     });
-    container.appendChild(div);
-  });
+
+  }catch(err){
+    console.error(err);
+    alert("Erro na comunicação com a API");
+  }
 }
 
 document.getElementById("gerar-rotas").addEventListener("click", gerarRotas);
 </script>
-
 </body>
 </html>
