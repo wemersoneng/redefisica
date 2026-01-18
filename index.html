@@ -243,10 +243,18 @@
 
     L.marker([pontoPartida.lat, pontoPartida.lng], {icon: L.icon({iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", iconSize:[25,41]})}).addTo(map);
 
-    escolas.forEach(e => {
-        const m = L.marker([e.lat, e.lng], { icon: criarIcone(e) }).addTo(map);
-        m.on('click', () => alternar(e));
-        marcadores[e.id] = m;
+escolas.forEach(e => {
+    const m = L.marker([e.lat, e.lng], { icon: criarIcone(e) }).addTo(map);
+    
+    // Adiciona o popup com Nome e Tipo
+    m.bindPopup(`<b>${e.nome}</b><br><small>Tipo: ${e.tipo.toUpperCase()}</small>`);
+    
+    m.on('click', () => {
+        alternar(e);
+        m.openPopup(); // Abre o popup ao clicar
+    });
+    marcadores[e.id] = m;
+});
     });
 
     function alternar(e) {
@@ -256,33 +264,49 @@
         atualizarUI();
     }
 
-    function atualizarUI() {
-        document.getElementById('badgeCount').innerText = selecionadas.length;
-        document.getElementById('lista-selecionadas').innerHTML = selecionadas.map(s => `
-            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee; align-items:center">
-                <div style="font-size:13px"><b>${s.nome}</b><br><small>${s.tipo}</small></div>
-                <i class="fas fa-trash-alt" style="color:var(--danger); padding:10px" onclick="removerPorId(${s.id})"></i>
-            </div>`).join("");
+function atualizarUI() {
+    // Atualiza o contador do Checklist
+    document.getElementById('badgeCount').innerText = selecionadas.length;
+    
+    // Atualiza a lista de selecionadas (painel inferior)
+    document.getElementById('lista-selecionadas').innerHTML = selecionadas.map(s => `
+        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee; align-items:center">
+            <div style="font-size:13px"><b>${s.nome}</b><br><small>${s.tipo}</small></div>
+            <i class="fas fa-trash-alt" style="color:var(--danger); padding:10px" onclick="removerPorId(${s.id})"></i>
+        </div>`).join("");
 
-        const dContent = document.getElementById('drawer-list');
-        dContent.innerHTML = "";
-        ["infantil", "fundamental", "mista", "equipamento"].forEach(t => {
-            const grupo = document.createElement('div');
-            const listaEsc = escolas.filter(e => e.tipo === t);
-            if(listaEsc.length > 0) {
-                group.innerHTML = `<div class="drawer-group-title">${t}</div>`;
-                listaEsc.forEach(e => {
-                    const isSel = selecionadas.find(s=>s.id===e.id);
-                    const item = document.createElement('div');
-                    item.className = `drawer-item ${isSel?'selected':''}`;
-                    item.innerHTML = `<span>${e.nome}</span><span class="tag-mod tag-${e.modalidade}">${e.modalidade}</span>`;
-                    item.onclick = () => { map.panTo([e.lat, e.lng]); alternar(e); };
-                    group.appendChild(item);
-                });
-                dContent.appendChild(group);
-            }
-        });
-    }
+    // Atualiza a Drawer Lateral agrupada por tipo
+    const dContent = document.getElementById('drawer-list');
+    dContent.innerHTML = ""; // Limpa a lista atual
+
+    const tipos = ["infantil", "fundamental", "mista", "equipamento"];
+    
+    tipos.forEach(t => {
+        const listaEsc = escolas.filter(e => e.tipo === t);
+        
+        if(listaEsc.length > 0) {
+            const grupoContainer = document.createElement('div');
+            grupoContainer.innerHTML = `<div class="drawer-group-title">${t.toUpperCase()}</div>`;
+            
+            listaEsc.forEach(e => {
+                const isSel = selecionadas.find(s => s.id === e.id);
+                const item = document.createElement('div');
+                item.className = `drawer-item ${isSel ? 'selected' : ''}`;
+                item.innerHTML = `
+                    <span>${e.nome}</span>
+                    <span class="tag-mod tag-${e.modalidade}">${e.modalidade}</span>
+                `;
+                item.onclick = () => { 
+                    map.setView([e.lat, e.lng], 16); 
+                    alternar(e); 
+                    marcadores[e.id].openPopup();
+                };
+                grupoContainer.appendChild(item);
+            });
+            dContent.appendChild(grupoContainer);
+        }
+    });
+}
 
     document.getElementById('busca').addEventListener('input', function(e) {
         const t = e.target.value.toLowerCase();
