@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>Rotas de Vistoria Pro</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
@@ -15,104 +15,84 @@
             --success: #34a853;
             --danger: #ea4335;
             --dark: #202124;
-            --gray: #f1f3f4;
+            --gray: #f8f9fa;
         }
 
-        body { margin:0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--gray); overflow: hidden; }
-        
-        #map { height: 100vh; width: 100vw; z-index: 1; }
+        body { margin:0; font-family: 'Segoe UI', Roboto, sans-serif; background: #fff; overflow: hidden; height: 100vh; }
+        #map { position: absolute; top:0; bottom:0; left:0; right:0; z-index: 1; }
 
-        /* Barra de Busca Minimalista */
+        /* AJUSTE DE ALTURA NO TOPO */
         .search-wrapper {
-            position: absolute; top: 15px; left: 15px; right: 65px;
+            position: absolute; top: 55px; left: 15px; right: 75px;
             z-index: 1000; display: flex; align-items: center;
         }
         .search-box {
-            background: white; border-radius: 24px; display: flex; align-items: center;
-            padding: 5px 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            width: 45px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; white-space: nowrap;
+            background: white; border-radius: 28px; display: flex; align-items: center;
+            padding: 5px 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 50px; transition: width 0.4s ease; overflow: hidden;
         }
         .search-box.active { width: 100%; }
         .search-box input {
-            border: none; outline: none; padding: 10px; width: 100%; font-size: 16px; margin-left: 10px;
+            border: none; outline: none; padding: 12px; width: 100%; font-size: 16px; margin-left: 10px; background: transparent;
         }
-        .search-icon { color: var(--primary); cursor: pointer; font-size: 18px; min-width: 20px; }
+        .search-icon { color: var(--primary); cursor: pointer; font-size: 20px; min-width: 24px; }
 
-        /* Configurações */
         .settings-btn {
-            position: absolute; top: 15px; right: 10px; z-index: 1000;
-            background: white; border-radius: 50%; width: 48px; height: 48px;
+            position: absolute; top: 55px; right: 15px; z-index: 1000;
+            background: white; border-radius: 50%; width: 50px; height: 50px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2); color: var(--dark);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); color: var(--dark);
         }
 
         #resultados-busca {
-            position: absolute; top: 75px; left: 15px; right: 15px;
-            background: white; border-radius: 12px; z-index: 999;
-            max-height: 250px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: none;
+            position: absolute; top: 120px; left: 15px; right: 15px;
+            background: white; border-radius: 16px; z-index: 1000;
+            max-height: 300px; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            display: none; border: 1px solid #eee;
         }
         #resultados-busca.active { display: block; }
 
-        /* FAB - Botão Flutuante */
-        .fab {
-            position: absolute; bottom: 80px; right: 20px; z-index: 1000;
+        .fab-gerar {
+            position: absolute; bottom: 100px; right: 15px; z-index: 1000;
             background: var(--success); color: white; border: none;
-            width: 56px; height: 56px; border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 22px;
-            display: flex; align-items: center; justify-content: center;
+            padding: 0 25px; height: 60px; border-radius: 30px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.3); font-size: 16px; font-weight: bold;
+            display: flex; align-items: center; gap: 10px; transition: 0.3s;
+            text-transform: uppercase;
         }
 
-        /* Bottom Panel */
         .selected-panel {
             position: absolute; bottom: 0; left: 0; right: 0; z-index: 1001;
-            background: white; border-radius: 20px 20px 0 0;
-            transform: translateY(calc(100% - 60px)); transition: 0.4s ease;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            background: white; border-radius: 24px 24px 0 0;
+            transform: translateY(calc(100% - 80px)); transition: 0.4s ease;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
         }
         .selected-panel.open { transform: translateY(0); }
         .panel-header {
-            height: 60px; display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; cursor: pointer;
-        }
-        .panel-content { height: 35vh; overflow-y: auto; padding: 0 15px 15px; }
-
-        /* Toast de Cópia */
-        #toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: var(--dark); color: white; padding: 10px 20px;
-            border-radius: 25px; font-size: 14px; z-index: 3000;
-            display: none; animation: fadeInOut 2s forwards;
+            height: 80px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 25px; cursor: pointer; border-bottom: 1px solid #f0f0f0;
         }
 
-        /* Cards de Rota */
         #container-rotas {
-            position: absolute; top: 80px; left: 15px; right: 15px; z-index: 998;
-            pointer-events: none; max-height: 60vh; overflow-y: auto;
+            position: absolute; top: 120px; left: 15px; right: 15px; z-index: 998;
+            pointer-events: none; max-height: 55vh; overflow-y: auto;
         }
         .rota-card {
-            background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: auto;
-            border-left: 6px solid var(--primary);
-        }
-        .btn-acao {
-            background: var(--gray); color: var(--dark); padding: 8px;
-            border-radius: 8px; text-decoration: none; font-size: 16px;
-            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+            background: white; border-radius: 16px; padding: 18px; margin-bottom: 15px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15); pointer-events: auto;
+            border-left: 8px solid var(--primary);
         }
 
-        .modal {
-            display: none; position: fixed; z-index: 2000; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+        #toast {
+            position: fixed; top: 130px; left: 50%; transform: translateX(-50%);
+            background: #323232; color: white; padding: 12px 25px;
+            border-radius: 30px; font-size: 14px; z-index: 3000; display: none;
         }
-        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 85%; max-width: 320px; }
-
-        @keyframes fadeInOut { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="toast">Copiado para o WhatsApp!</div>
+    <div id="toast">Copiado! 📋</div>
 
     <div class="search-wrapper">
         <div class="search-box" id="searchBox">
@@ -122,33 +102,43 @@
     </div>
 
     <div class="settings-btn" onclick="toggleModal(true)">
-        <i class="fas fa-sliders-h"></i>
+        <i class="fas fa-cog"></i>
     </div>
 
     <div id="map"></div>
     <div id="resultados-busca"></div>
     <div id="container-rotas"></div>
 
-    <button class="fab" onclick="gerarRotas()">
-        <i class="fas fa-directions"></i>
+    <button class="fab-gerar" onclick="gerarRotas()" id="btnGerarMain">
+        <i class="fas fa-route" style="font-size: 20px;"></i>
+        <span>Gerar Rotas</span>
     </button>
 
     <div class="selected-panel" id="panel">
         <div class="panel-header" onclick="togglePanel()">
-            <span><i class="fas fa-list-check"></i> Selecionadas (<b id="badgeCount">0</b>)</span>
-            <i class="fas fa-chevron-up"></i>
+            <span style="font-weight: 600;">
+                <i class="fas fa-school" style="margin-right: 8px; color: var(--primary)"></i> 
+                Selecionadas (<span id="badgeCount">0</span>)
+            </span>
+            <i class="fas fa-chevron-up" id="setaPainel"></i>
         </div>
-        <div class="panel-content" id="lista-selecionadas"></div>
+        <div style="height: 350px; overflow-y: auto; padding: 15px;" id="lista-selecionadas"></div>
     </div>
 
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <h3 style="margin-top:0">Configuração</h3>
-            <label style="font-size:14px">Nº de Carros:</label>
-            <input type="number" id="num-rotas" value="2" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ddd; border-radius:8px">
-            <label style="font-size:14px">Escolas por Carro:</label>
-            <input type="number" id="max-escolas" value="5" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ddd; border-radius:8px">
-            <button onclick="toggleModal(false)" style="width:100%; background:var(--primary); color:white; border:none; padding:12px; border-radius:8px; font-weight:bold">FECHAR</button>
+    <div class="modal" id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:24px; width:85%; max-width:320px;">
+            <h3 style="margin-top:0">Ajustes da Rota</h3>
+            
+            <label style="font-size: 13px; color: #666;">Nº de Veículos Disponíveis:</label>
+            <input type="number" id="num-rotas" value="2" style="width:100%; padding:12px; margin:8px 0 15px; border:1px solid #ddd; border-radius:12px">
+            
+            <label style="font-size: 13px; color: #666;">Escolas por Veículo (Máx):</label>
+            <input type="number" id="max-escolas" value="5" style="width:100%; padding:12px; margin:8px 0 15px; border:1px solid #ddd; border-radius:12px">
+            
+            <label style="font-size: 13px; color: #666;">Tempo por Vistoria (minutos):</label>
+            <input type="number" id="tempo-vistoria" value="15" style="width:100%; padding:12px; margin:8px 0 15px; border:1px solid #ddd; border-radius:12px">
+            
+            <button onclick="toggleModal(false)" style="width:100%; background:var(--primary); color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; margin-top:10px">SALVAR CONFIGURAÇÃO</button>
         </div>
     </div>
 
@@ -177,122 +167,141 @@
         { id: 20, nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.32457321991130 }
     ];
 
-    let escolasSelecionadas = [];
+    let selecionadas = [];
     let marcadores = {};
-    let linhasRotas = [];
+    let polilinhas = [];
 
     const map = L.map("map", { zoomControl: false }).setView([pontoPartida.lat, pontoPartida.lng], 13);
     L.tileLayer("https://{s}.tile.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png").addTo(map);
 
-    const iconeVerde = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34] });
-    const iconeAzul = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34] });
+    const icoAzul = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", iconSize:[25,41], iconAnchor:[12,41] });
+    const icoVerde = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", iconSize:[25,41], iconAnchor:[12,41] });
     
     L.marker([pontoPartida.lat, pontoPartida.lng], {icon: L.icon({iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", iconSize:[25,41]})}).addTo(map).bindPopup("<b>SEINFRA</b>");
 
     escolas.forEach(e => {
-        const m = L.marker([e.lat, e.lng], {icon:iconeAzul}).addTo(map).bindPopup(`<b>${e.nome}</b>`);
-        m.on("click", () => {
-            map.flyTo([e.lat, e.lng], 16);
-            alternarEscola(e);
-        });
+        const m = L.marker([e.lat, e.lng], {icon:icoAzul}).addTo(map).bindPopup(`<b>${e.nome}</b>`);
+        m.on("click", () => { map.flyTo([e.lat, e.lng], 15); alternar(e); });
         marcadores[e.id] = m;
     });
 
     function toggleSearch() { document.getElementById("searchBox").classList.toggle("active"); }
-    function togglePanel() { document.getElementById("panel").classList.toggle("open"); }
-    function toggleModal(show) { document.getElementById("settingsModal").style.display = show ? "flex" : "none"; }
+    function togglePanel() { 
+        document.getElementById("panel").classList.toggle("open");
+        document.getElementById("setaPainel").classList.toggle("fa-chevron-down");
+    }
+    function toggleModal(s) { document.getElementById("settingsModal").style.display = s ? "flex" : "none"; }
 
-    function alternarEscola(e) {
-        const idx = escolasSelecionadas.findIndex(s => s.id === e.id);
-        if (idx === -1) {
-            escolasSelecionadas.push(e);
-            marcadores[e.id].setIcon(iconeVerde);
-            marcadores[e.id].openPopup();
+    function alternar(e) {
+        const i = selecionadas.findIndex(s => s.id === e.id);
+        if (i === -1) {
+            selecionadas.push(e);
+            marcadores[e.id].setIcon(icoVerde).openPopup();
         } else {
-            escolasSelecionadas.splice(idx, 1);
-            marcadores[e.id].setIcon(iconeAzul);
+            selecionadas.splice(i, 1);
+            marcadores[e.id].setIcon(icoAzul).closePopup();
         }
-        document.getElementById("badgeCount").textContent = escolasSelecionadas.length;
-        renderizarLista();
+        document.getElementById("badgeCount").textContent = selecionadas.length;
+        atualizarLista();
     }
 
-    function renderizarLista() {
-        const c = document.getElementById("lista-selecionadas");
-        c.innerHTML = escolasSelecionadas.length ? "" : "<p style='color:#999;text-align:center'>Nenhuma selecionada</p>";
-        escolasSelecionadas.forEach(e => {
-            const d = document.createElement("div");
-            d.style = "display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee; font-size:13px";
-            d.innerHTML = `<span>${e.nome}</span><i class="fas fa-trash" style="color:var(--danger)" onclick="removerPorId(${e.id})"></i>`;
-            c.appendChild(d);
+    function atualizarLista() {
+        const list = document.getElementById("lista-selecionadas");
+        list.innerHTML = selecionadas.length ? "" : "<p style='text-align:center; color:#999'>Toque nas escolas no mapa</p>";
+        selecionadas.forEach(e => {
+            const item = document.createElement("div");
+            item.style = "display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #eee";
+            item.innerHTML = `<span style="font-size:14px">${e.nome}</span> <i class="fas fa-trash-alt" style="color:var(--danger); padding:10px" onclick="removerPorId(${e.id})"></i>`;
+            list.appendChild(item);
         });
     }
 
-    function removerPorId(id) { alternarEscola(escolas.find(e => e.id === id)); }
+    function removerPorId(id) { alternar(escolas.find(e => e.id === id)); }
 
     async function gerarRotas() {
-        if (!escolasSelecionadas.length) return alert("Selecione escolas!");
-        const fab = document.querySelector(".fab");
-        fab.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        if (!selecionadas.length) return alert("Escolha as escolas!");
+        const btn = document.getElementById("btnGerarMain");
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CALCULANDO...';
         
-        linhasRotas.forEach(l => map.removeLayer(l));
+        polilinhas.forEach(p => map.removeLayer(p));
         document.getElementById("container-rotas").innerHTML = "";
 
-        const jobs = escolasSelecionadas.map(e => ({ id: e.id, location: [e.lng, e.lat], amount: [1] }));
-        const v = parseInt(document.getElementById("num-rotas").value);
-        const m = parseInt(document.getElementById("max-escolas").value);
-        const vehicles = Array.from({length: v}, (_, i) => ({ id: i, profile: "driving-car", start: [pontoPartida.lng, pontoPartida.lat], end: [pontoPartida.lng, pontoPartida.lat], capacity: [m] }));
+        // CAPTURANDO VALORES DAS CONFIGS
+        const nV = parseInt(document.getElementById("num-rotas").value);
+        const mV = parseInt(document.getElementById("max-escolas").value);
+        const tempoSegundos = parseInt(document.getElementById("tempo-vistoria").value) * 60;
+
+        // ADICIONANDO 'service' PARA EQUILIBRAR A ROTA
+        const jobs = selecionadas.map(e => ({ 
+            id: e.id, 
+            location: [e.lng, e.lat], 
+            amount: [1],
+            service: tempoSegundos // Isso faz o algoritmo "sentir" o tempo parado em cada escola
+        }));
+
+        const vehicles = Array.from({length: nV}, (_, i) => ({ 
+            id: i, 
+            profile: "driving-car", 
+            start: [pontoPartida.lng, pontoPartida.lat], 
+            end: [pontoPartida.lng, pontoPartida.lat], 
+            capacity: [mV] 
+        }));
 
         try {
-            const r = await fetch("https://redefisica.onrender.com/rotas", {
+            const resp = await fetch("https://redefisica.onrender.com/rotas", {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ jobs, vehicles })
             });
-            const data = await r.json();
+            const data = await resp.json();
             
-            data.routes.forEach((rota, i) => {
-                const cor = `hsl(${(i * 140) % 360}, 75%, 50%)`;
-                const nomes = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)).nome);
-                const listaLi = nomes.map((n, idx) => `<li>${idx+1}. ${n}</li>`).join("");
-
-                const coordsMap = rota.steps.map(s => `${s.location[1]},${s.location[0]}`);
-                const urlGoogle = `https://www.google.com/maps/dir/${coordsMap.join("/")}`;
+            data.routes.forEach((route, idx) => {
+                const color = `hsl(${(idx * 140) % 360}, 80%, 45%)`;
+                const stops = route.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)).nome);
                 
-                const textoCopia = `*ROTA ${i+1}*\nDistância: ${(rota.distance/1000).toFixed(1)}km\n\n` + nomes.map((n, idx) => `${idx+1}. ${n}`).join("\n");
+                const googleCoords = route.steps.map(s => `${s.location[1]},${s.location[0]}`).join("/");
+                const urlG = `https://www.google.com/maps/dir/${googleCoords}`;
+                
+                const shareText = `*VISTORIA ROTA ${idx+1}*\n` + stops.map((s,i) => `${i+1}. ${s}`).join("\n");
 
                 const card = document.createElement("div");
                 card.className = "rota-card";
-                card.style.borderLeftColor = cor;
+                card.style.borderLeftColor = color;
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
-                        <strong style="color:var(--primary)">ROTA ${i+1}</strong>
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <b style="color:var(--primary)">ROTA ${idx+1}</b>
                         <div style="display:flex; gap:10px">
-                            <button onclick="copiar('${textoCopia}')" class="btn-acao"><i class="fas fa-copy"></i></button>
-                            <a href="${urlGoogle}" target="_blank" class="btn-acao" style="background:var(--primary); color:white"><i class="fas fa-location-arrow"></i></a>
+                            <button onclick="copiar('${shareText.replace(/'/g, "\\'")}')" style="background:#eee; border:none; width:45px; height:45px; border-radius:12px"><i class="fas fa-copy"></i></button>
+                            <a href="${urlG}" target="_blank" style="background:var(--primary); color:white; width:45px; height:45px; border-radius:12px; display:flex; align-items:center; justify-content:center; text-decoration:none"><i class="fas fa-location-arrow"></i></a>
                         </div>
                     </div>
-                    <ul style="margin:0; padding-left:18px; font-size:13px; color:#444">${listaLi}</ul>
+                    <ul style="margin:12px 0 0 0; padding-left:20px; font-size:13px; color:#555">
+                        ${stops.map(s => `<li style="margin-bottom:5px">${s}</li>`).join("")}
+                    </ul>
                 `;
                 document.getElementById("container-rotas").appendChild(card);
 
-                if (rota.geometry) {
-                    const poly = L.polyline(decodePolyline(rota.geometry), {color: cor, weight: 6, opacity: 0.8}).addTo(map);
-                    linhasRotas.push(poly);
+                if (route.geometry) {
+                    const line = L.polyline(decode(route.geometry), {color: color, weight: 6, opacity: 0.8}).addTo(map);
+                    polilinhas.push(line);
                 }
             });
-            if (linhasRotas.length) map.fitBounds(new L.featureGroup(linhasRotas).getBounds());
+            if (polilinhas.length) map.fitBounds(new L.featureGroup(polilinhas).getBounds());
             if (document.getElementById("panel").classList.contains("open")) togglePanel();
-        } catch (err) { alert("Erro ao calcular rotas."); } 
-        finally { fab.innerHTML = '<i class="fas fa-directions"></i>'; }
+        } catch (e) {
+            alert("Servidor ocupado. Tente novamente.");
+        } finally {
+            btn.innerHTML = '<i class="fas fa-route"></i> <span>Gerar Rotas</span>';
+        }
     }
 
-    function copiar(texto) {
-        navigator.clipboard.writeText(texto);
+    function copiar(txt) {
+        navigator.clipboard.writeText(txt);
         const t = document.getElementById("toast");
         t.style.display = "block";
         setTimeout(() => t.style.display = "none", 2000);
     }
 
-    function decodePolyline(str) {
+    function decode(str) {
         let index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null, lat_change, lng_change;
         while (index < str.length) {
             byte = null; shift = 0; result = 0;
@@ -307,21 +316,16 @@
     }
 
     document.getElementById("busca").addEventListener("input", function(e) {
-        const termo = e.target.value.toLowerCase();
+        const t = e.target.value.toLowerCase();
         const res = document.getElementById("resultados-busca");
-        if(termo.length < 2) { res.classList.remove("active"); return; }
+        if(t.length < 2) { res.classList.remove("active"); return; }
         res.innerHTML = "";
-        escolas.filter(esc => esc.nome.toLowerCase().includes(termo)).forEach(esc => {
-            const item = document.createElement("div");
-            item.style = "padding:15px; border-bottom:1px solid #eee; cursor:pointer; font-size:14px";
-            item.textContent = esc.nome;
-            item.onclick = () => { 
-                map.flyTo([esc.lat, esc.lng], 16);
-                alternarEscola(esc); 
-                res.classList.remove("active");
-                toggleSearch();
-            };
-            res.appendChild(item);
+        escolas.filter(esc => esc.nome.toLowerCase().includes(t)).forEach(esc => {
+            const d = document.createElement("div");
+            d.style = "padding:18px; border-bottom:1px solid #f5f5f5; cursor:pointer; font-size:15px";
+            d.textContent = esc.nome;
+            d.onclick = () => { map.flyTo([esc.lat, esc.lng], 16); alternar(esc); res.classList.remove("active"); toggleSearch(); };
+            res.appendChild(d);
         });
         res.classList.add("active");
     });
