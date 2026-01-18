@@ -13,41 +13,23 @@
         :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --dark: #202124; --gray: #5f6368; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Segoe UI', sans-serif; overflow: hidden; background: #f8f9fa; }
-        
         #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; }
-
-        .server-status {
-            position: absolute; bottom: 70px; left: 15px; z-index: 1000;
-            background: white; padding: 5px 10px; border-radius: 15px;
-            display: flex; align-items: center; gap: 6px;
-            font-size: 10px; font-weight: bold; color: var(--gray);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            pointer-events: none;
-        }
+        .server-status { position: absolute; bottom: 70px; left: 15px; z-index: 1000; background: white; padding: 5px 10px; border-radius: 15px; display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: bold; color: var(--gray); box-shadow: 0 2px 5px rgba(0,0,0,0.1); pointer-events: none; }
         #ponto-status { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
-
         .top-bar { position: absolute; top: 20px; left: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         .row-search { display: flex; gap: 8px; pointer-events: auto; }
         .search-box { flex: 1; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: relative; }
         .search-input-wrapper { display: flex; align-items: center; padding: 0 12px; height: 45px; }
         .search-box input { border: none; outline: none; width: 100%; font-size: 15px; margin-left: 8px; }
-        
-        #lista-pesquisa { 
-            position: absolute; top: 50px; left: 0; right: 0; 
-            background: white; border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-            max-height: 250px; overflow-y: auto; z-index: 1100;
-        }
+        #lista-pesquisa { position: absolute; top: 50px; left: 0; right: 0; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-height: 250px; overflow-y: auto; z-index: 1100; }
         .item-busca { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; }
         .menu-btn { background: white; border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; pointer-events: auto; }
         .btn-reset { color: var(--danger); }
-
         .filter-container { display: flex; flex-direction: column; gap: 6px; pointer-events: auto; }
-        .filter-row { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; }
+        .filter-row { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
         .pill { background: white; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; color: var(--gray); box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; white-space: nowrap; border: 1.5px solid transparent; }
         .pill.active { background: var(--dark); color: white; }
         .pill.active-mod { border-color: var(--primary); color: var(--primary); }
-
         .drawer { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: white; z-index: 2000; transition: 0.3s; box-shadow: 5px 0 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
         .drawer.open { left: 0; }
         .drawer-header { padding: 20px; background: var(--dark); color: white; display: flex; justify-content: space-between; align-items: center; }
@@ -57,26 +39,17 @@
         .drawer-item.selected { background: #e8f0fe; border-left: 4px solid var(--primary); }
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999; display: none; }
         .drawer-overlay.active { display: block; }
-
-        @keyframes pulse-blue {
-            0% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(26, 115, 232, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0); }
-        }
+        @keyframes pulse-blue { 0% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(26, 115, 232, 0); } 100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0); } }
         .marker-pulse { border-radius: 50%; animation: pulse-blue 2s infinite; }
-
         .selected-panel { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1001; background: white; border-radius: 20px 20px 0 0; transform: translateY(calc(100% - 60px)); transition: 0.3s; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
         .selected-panel.open { transform: translateY(0); }
         .panel-header { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; cursor: pointer; }
-
         #container-rotas { position: absolute; top: 145px; left: 10px; right: 10px; z-index: 999; pointer-events: none; }
         .rota-card { background: white; border-radius: 10px; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: auto; border-left: 5px solid var(--primary); overflow: hidden; }
         .rota-header { padding: 12px; cursor: pointer; }
         .rota-details { display: none; padding: 12px; border-top: 1px solid #eee; background: #fafafa; }
         .rota-details.active { display: block; }
-
         .fab-gerar { position: absolute; bottom: 80px; right: 20px; z-index: 1000; background: var(--success); color: white; border: none; padding: 0 25px; height: 50px; border-radius: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        
         .tag-mod { font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase; margin-top: 4px; display: inline-block; width: fit-content; }
         .tag-integral { background: #e8f5e9; color: #2e7d32; }
         .tag-parcial { background: #fff3e0; color: #ef6c00; }
@@ -84,11 +57,7 @@
 </head>
 <body>
 
-    <div class="server-status">
-        <div id="ponto-status"></div>
-        <span>SERVER ENGINE</span>
-    </div>
-
+    <div class="server-status"><div id="ponto-status"></div><span>SERVER ENGINE</span></div>
     <div class="drawer-overlay" id="overlay" onclick="toggleDrawer()"></div>
     <div class="drawer" id="drawer">
         <div class="drawer-header"><b>Unidades Educacionais</b><i class="fas fa-times" onclick="toggleDrawer()"></i></div>
@@ -99,13 +68,10 @@
         <div class="row-search">
             <div class="menu-btn" onclick="toggleDrawer()"><i class="fas fa-bars"></i></div>
             <div class="search-box">
-                <div class="search-input-wrapper">
-                    <i class="fas fa-search" style="color:#888"></i>
-                    <input type="text" id="busca" placeholder="Buscar unidade...">
-                </div>
+                <div class="search-input-wrapper"><i class="fas fa-search" style="color:#888"></i><input type="text" id="busca" placeholder="Buscar unidade..."></div>
                 <div id="lista-pesquisa"></div>
             </div>
-            <div class="menu-btn btn-reset" onclick="resetGeral()"><i class="fas fa-sync-alt"></i></div>
+            <div class="menu-btn btn-reset" onclick="resetGeral()" title="Resetar Tudo"><i class="fas fa-sync-alt"></i></div>
             <div class="menu-btn" onclick="toggleModal(true)"><i class="fas fa-cog"></i></div>
         </div>
         <div class="filter-container">
@@ -125,16 +91,10 @@
 
     <div id="map"></div>
     <div id="container-rotas"></div>
-
-    <button class="fab-gerar" onclick="gerarRotas()" id="btnGerar">
-        <i class="fas fa-route"></i> OTIMIZAR AGORA
-    </button>
+    <button class="fab-gerar" onclick="gerarRotas()" id="btnGerar"><i class="fas fa-route"></i> OTIMIZAR AGORA</button>
 
     <div class="selected-panel" id="panel">
-        <div class="panel-header" onclick="togglePanel()">
-            <b>Checklist (<span id="badgeCount">0</span>)</b>
-            <i class="fas fa-chevron-up"></i>
-        </div>
+        <div class="panel-header" onclick="togglePanel()"><b>Checklist (<span id="badgeCount">0</span>)</b><i class="fas fa-chevron-up"></i></div>
         <div id="lista-selecionadas" style="height: 250px; overflow-y: auto; padding: 10px 20px;"></div>
     </div>
 
@@ -144,117 +104,125 @@
             <label style="font-size:11px;">VEÍCULOS DISPONÍVEIS</label>
             <input type="number" id="num-veiculos" value="2" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
             <label style="font-size:11px;">CAPACIDADE POR VEÍCULO</label>
-            <input type="number" id="max-por-veiculo" value="6" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+            <input type="number" id="max-por-veiculo" value="10" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
             <button onclick="toggleModal(false)" style="width:100%; background:var(--dark); color:white; padding:15px; border-radius:10px; border:none; font-weight:bold;">SALVAR</button>
         </div>
     </div>
 
 <script>
-    const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
-    const escolas = [const escolas = [
-    { id: 1, nome: "ESCOLA 001", lat: -7.225911, lng: -39.299028, tipo: "infantil", modalidade: "integral" },
-    { id: 2, nome: "ESCOLA 002", lat: -7.219899, lng: -39.337978, tipo: "infantil", modalidade: "parcial" },
-    { id: 3, nome: "ESCOLA 003", lat: -7.201542, lng: -39.270637, tipo: "fundamental", modalidade: "parcial" },
-    { id: 4, nome: "ESCOLA 004", lat: -7.228200, lng: -39.340142, tipo: "fundamental", modalidade: "integral" },
-    { id: 5, nome: "ESCOLA 005", lat: -7.230457, lng: -39.320376, tipo: "mista", modalidade: "integral" },
-    { id: 6, nome: "ESCOLA 006", lat: -7.233701, lng: -39.304024, tipo: "mista", modalidade: "parcial" },
-    { id: 7, nome: "ESCOLA 007", lat: -7.221670, lng: -39.312054, tipo: "infantil", modalidade: "parcial" },
-    { id: 8, nome: "ESCOLA 008", lat: -7.245753, lng: -39.338081, tipo: "equipamento", modalidade: "parcial" },
-    { id: 9, nome: "ESCOLA 009", lat: -7.248034, lng: -39.288181, tipo: "equipamento", modalidade: "integral" },
-    { id: 10, nome: "ESCOLA 010", lat: -7.221273, lng: -39.304957, tipo: "fundamental", modalidade: "parcial" },
-    { id: 11, nome: "ESCOLA 011", lat: -7.209769, lng: -39.304362, tipo: "fundamental", modalidade: "parcial" },
-    { id: 12, nome: "ESCOLA 012", lat: -7.256686, lng: -39.336793, tipo: "mista", modalidade: "integral" },
-    { id: 13, nome: "ESCOLA 013", lat: -7.218658, lng: -39.291387, tipo: "infantil", modalidade: "integral" },
-    { id: 14, nome: "ESCOLA 014", lat: -7.260423, lng: -39.334991, tipo: "fundamental", modalidade: "parcial" },
-    { id: 15, nome: "ESCOLA 015", lat: -7.192571, lng: -39.328138, tipo: "equipamento", modalidade: "parcial" },
-    { id: 16, nome: "ESCOLA 016", lat: -7.217522, lng: -39.330402, tipo: "mista", modalidade: "integral" },
-    { id: 17, nome: "ESCOLA 017", lat: -7.212300, lng: -39.328341, tipo: "infantil", modalidade: "parcial" },
-    { id: 18, nome: "ESCOLA 018", lat: -7.227920, lng: -39.352961, tipo: "fundamental", modalidade: "integral" },
-    { id: 19, nome: "ESCOLA 019", lat: -7.218698, lng: -39.298127, tipo: "equipamento", modalidade: "parcial" },
-    { id: 20, nome: "ESCOLA 020", lat: -7.262060, lng: -39.324573, tipo: "mista", modalidade: "parcial" },
-    { id: 21, nome: "ESCOLA 021", lat: -7.215432, lng: -39.312345, tipo: "infantil", modalidade: "integral" },
-    { id: 22, nome: "ESCOLA 022", lat: -7.223456, lng: -39.305678, tipo: "fundamental", modalidade: "parcial" },
-    { id: 23, nome: "ESCOLA 023", lat: -7.234567, lng: -39.312345, tipo: "mista", modalidade: "integral" },
-    { id: 24, nome: "ESCOLA 024", lat: -7.245678, lng: -39.323456, tipo: "equipamento", modalidade: "parcial" },
-    { id: 25, nome: "ESCOLA 025", lat: -7.256789, lng: -39.334567, tipo: "infantil", modalidade: "integral" },
-    { id: 26, nome: "ESCOLA 026", lat: -7.267890, lng: -39.345678, tipo: "fundamental", modalidade: "parcial" },
-    { id: 27, nome: "ESCOLA 027", lat: -7.201234, lng: -39.283456, tipo: "mista", modalidade: "integral" },
-    { id: 28, nome: "ESCOLA 028", lat: -7.212345, lng: -39.294567, tipo: "equipamento", modalidade: "parcial" },
-    { id: 29, nome: "ESCOLA 029", lat: -7.223456, lng: -39.305678, tipo: "infantil", modalidade: "integral" },
-    { id: 30, nome: "ESCOLA 030", lat: -7.234567, lng: -39.316789, tipo: "fundamental", modalidade: "parcial" },
-    { id: 31, nome: "ESCOLA 031", lat: -7.195000, lng: -39.310000, tipo: "mista", modalidade: "integral" },
-    { id: 32, nome: "ESCOLA 032", lat: -7.198000, lng: -39.315000, tipo: "infantil", modalidade: "parcial" },
-    { id: 33, nome: "ESCOLA 033", lat: -7.202000, lng: -39.320000, tipo: "fundamental", modalidade: "integral" },
-    { id: 34, nome: "ESCOLA 034", lat: -7.205000, lng: -39.325000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 35, nome: "ESCOLA 035", lat: -7.208000, lng: -39.330000, tipo: "mista", modalidade: "integral" },
-    { id: 36, nome: "ESCOLA 036", lat: -7.211000, lng: -39.335000, tipo: "infantil", modalidade: "parcial" },
-    { id: 37, nome: "ESCOLA 037", lat: -7.214000, lng: -39.340000, tipo: "fundamental", modalidade: "integral" },
-    { id: 38, nome: "ESCOLA 038", lat: -7.217000, lng: -39.345000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 39, nome: "ESCOLA 039", lat: -7.220000, lng: -39.350000, tipo: "mista", modalidade: "integral" },
-    { id: 40, nome: "ESCOLA 040", lat: -7.223000, lng: -39.280000, tipo: "infantil", modalidade: "parcial" },
-    { id: 41, nome: "ESCOLA 041", lat: -7.226000, lng: -39.285000, tipo: "fundamental", modalidade: "integral" },
-    { id: 42, nome: "ESCOLA 042", lat: -7.229000, lng: -39.290000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 43, nome: "ESCOLA 043", lat: -7.232000, lng: -39.295000, tipo: "mista", modalidade: "integral" },
-    { id: 44, nome: "ESCOLA 044", lat: -7.235000, lng: -39.300000, tipo: "infantil", modalidade: "parcial" },
-    { id: 45, nome: "ESCOLA 045", lat: -7.238000, lng: -39.305000, tipo: "fundamental", modalidade: "integral" },
-    { id: 46, nome: "ESCOLA 046", lat: -7.241000, lng: -39.310000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 47, nome: "ESCOLA 047", lat: -7.244000, lng: -39.315000, tipo: "mista", modalidade: "integral" },
-    { id: 48, nome: "ESCOLA 048", lat: -7.247000, lng: -39.320000, tipo: "infantil", modalidade: "parcial" },
-    { id: 49, nome: "ESCOLA 049", lat: -7.250000, lng: -39.325000, tipo: "fundamental", modalidade: "integral" },
-    { id: 50, nome: "ESCOLA 050", lat: -7.253000, lng: -39.330000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 51, nome: "ESCOLA 051", lat: -7.256000, lng: -39.335000, tipo: "mista", modalidade: "integral" },
-    { id: 52, nome: "ESCOLA 052", lat: -7.259000, lng: -39.340000, tipo: "infantil", modalidade: "parcial" },
-    { id: 53, nome: "ESCOLA 053", lat: -7.262000, lng: -39.345000, tipo: "fundamental", modalidade: "integral" },
-    { id: 54, nome: "ESCOLA 054", lat: -7.210000, lng: -39.270000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 55, nome: "ESCOLA 055", lat: -7.213000, lng: -39.275000, tipo: "mista", modalidade: "integral" },
-    { id: 56, nome: "ESCOLA 056", lat: -7.216000, lng: -39.280000, tipo: "infantil", modalidade: "parcial" },
-    { id: 57, nome: "ESCOLA 057", lat: -7.219000, lng: -39.285000, tipo: "fundamental", modalidade: "integral" },
-    { id: 58, nome: "ESCOLA 058", lat: -7.222000, lng: -39.290000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 59, nome: "ESCOLA 059", lat: -7.225000, lng: -39.295000, tipo: "mista", modalidade: "integral" },
-    { id: 60, nome: "ESCOLA 060", lat: -7.228000, lng: -39.300000, tipo: "infantil", modalidade: "parcial" },
-    { id: 61, nome: "ESCOLA 061", lat: -7.185000, lng: -39.310000, tipo: "fundamental", modalidade: "integral" },
-    { id: 62, nome: "ESCOLA 062", lat: -7.188000, lng: -39.315000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 63, nome: "ESCOLA 063", lat: -7.191000, lng: -39.320000, tipo: "mista", modalidade: "integral" },
-    { id: 64, nome: "ESCOLA 064", lat: -7.194000, lng: -39.325000, tipo: "infantil", modalidade: "parcial" },
-    { id: 65, nome: "ESCOLA 065", lat: -7.197000, lng: -39.330000, tipo: "fundamental", modalidade: "integral" },
-    { id: 66, nome: "ESCOLA 066", lat: -7.200000, lng: -39.335000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 67, nome: "ESCOLA 067", lat: -7.203000, lng: -39.340000, tipo: "mista", modalidade: "integral" },
-    { id: 68, nome: "ESCOLA 068", lat: -7.206000, lng: -39.345000, tipo: "infantil", modalidade: "parcial" },
-    { id: 69, nome: "ESCOLA 069", lat: -7.209000, lng: -39.350000, tipo: "fundamental", modalidade: "integral" },
-    { id: 70, nome: "ESCOLA 070", lat: -7.212000, lng: -39.355000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 71, nome: "ESCOLA 071", lat: -7.235000, lng: -39.270000, tipo: "mista", modalidade: "integral" },
-    { id: 72, nome: "ESCOLA 072", lat: -7.238000, lng: -39.275000, tipo: "infantil", modalidade: "parcial" },
-    { id: 73, nome: "ESCOLA 073", lat: -7.241000, lng: -39.280000, tipo: "fundamental", modalidade: "integral" },
-    { id: 74, nome: "ESCOLA 074", lat: -7.244000, lng: -39.285000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 75, nome: "ESCOLA 075", lat: -7.247000, lng: -39.290000, tipo: "mista", modalidade: "integral" },
-    { id: 76, nome: "ESCOLA 076", lat: -7.250000, lng: -39.295000, tipo: "infantil", modalidade: "parcial" },
-    { id: 77, nome: "ESCOLA 077", lat: -7.253000, lng: -39.300000, tipo: "fundamental", modalidade: "integral" },
-    { id: 78, nome: "ESCOLA 078", lat: -7.256000, lng: -39.305000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 79, nome: "ESCOLA 079", lat: -7.259000, lng: -39.310000, tipo: "mista", modalidade: "integral" },
-    { id: 80, nome: "ESCOLA 080", lat: -7.262000, lng: -39.315000, tipo: "infantil", modalidade: "parcial" },
-    { id: 81, nome: "ESCOLA 081", lat: -7.210000, lng: -39.320000, tipo: "fundamental", modalidade: "integral" },
-    { id: 82, nome: "ESCOLA 082", lat: -7.213000, lng: -39.325000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 83, nome: "ESCOLA 083", lat: -7.216000, lng: -39.330000, tipo: "mista", modalidade: "integral" },
-    { id: 84, nome: "ESCOLA 084", lat: -7.219000, lng: -39.335000, tipo: "infantil", modalidade: "parcial" },
-    { id: 85, nome: "ESCOLA 085", lat: -7.222000, lng: -39.340000, tipo: "fundamental", modalidade: "integral" },
-    { id: 86, nome: "ESCOLA 086", lat: -7.225000, lng: -39.345000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 87, nome: "ESCOLA 087", lat: -7.228000, lng: -39.350000, tipo: "mista", modalidade: "integral" },
-    { id: 88, nome: "ESCOLA 088", lat: -7.231000, lng: -39.355000, tipo: "infantil", modalidade: "parcial" },
-    { id: 89, nome: "ESCOLA 089", lat: -7.234000, lng: -39.360000, tipo: "fundamental", modalidade: "integral" },
-    { id: 90, nome: "ESCOLA 090", lat: -7.237000, lng: -39.265000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 91, nome: "ESCOLA 091", lat: -7.240000, lng: -39.270000, tipo: "mista", modalidade: "integral" },
-    { id: 92, nome: "ESCOLA 092", lat: -7.243000, lng: -39.275000, tipo: "infantil", modalidade: "parcial" },
-    { id: 93, nome: "ESCOLA 093", lat: -7.246000, lng: -39.280000, tipo: "fundamental", modalidade: "integral" },
-    { id: 94, nome: "ESCOLA 094", lat: -7.249000, lng: -39.285000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 95, nome: "ESCOLA 095", lat: -7.252000, lng: -39.290000, tipo: "mista", modalidade: "integral" },
-    { id: 96, nome: "ESCOLA 096", lat: -7.255000, lng: -39.295000, tipo: "infantil", modalidade: "parcial" },
-    { id: 97, nome: "ESCOLA 097", lat: -7.258000, lng: -39.300000, tipo: "fundamental", modalidade: "integral" },
-    { id: 98, nome: "ESCOLA 098", lat: -7.261000, lng: -39.305000, tipo: "equipamento", modalidade: "parcial" },
-    { id: 99, nome: "ESCOLA 099", lat: -7.264000, lng: -39.310000, tipo: "mista", modalidade: "integral" },
-    { id: 100, nome: "ESCOLA 100", lat: -7.267000, lng: -39.315000, tipo: "infantil", modalidade: "parcial" }
-];
+    // ==========================================
+    // 1. LISTA ORGANIZADA (SEM ID MANUAL)
+    // ==========================================
+    const escolasDadosBrutos = [
+        { nome: "ESCOLA 001", lat: -7.225911, lng: -39.299028, tipo: "infantil", modalidade: "integral" },
+        { nome: "ESCOLA 002", lat: -7.219899, lng: -39.337978, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 003", lat: -7.201542, lng: -39.270637, tipo: "fundamental", modalidade: "parcial" },
+        { nome: "ESCOLA 004", lat: -7.228200, lng: -39.340142, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 005", lat: -7.230457, lng: -39.320376, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 006", lat: -7.233701, lng: -39.304024, tipo: "mista", modalidade: "parcial" },
+        { nome: "ESCOLA 007", lat: -7.221670, lng: -39.312054, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 008", lat: -7.245753, lng: -39.338081, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 009", lat: -7.248034, lng: -39.288181, tipo: "equipamento", modalidade: "integral" },
+        { nome: "ESCOLA 010", lat: -7.221273, lng: -39.304957, tipo: "fundamental", modalidade: "parcial" },
+        { nome: "ESCOLA 011", lat: -7.209769, lng: -39.304362, tipo: "fundamental", modalidade: "parcial" },
+        { nome: "ESCOLA 012", lat: -7.256686, lng: -39.336793, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 013", lat: -7.218658, lng: -39.291387, tipo: "infantil", modalidade: "integral" },
+        { nome: "ESCOLA 014", lat: -7.260423, lng: -39.334991, tipo: "fundamental", modalidade: "parcial" },
+        { nome: "ESCOLA 015", lat: -7.192571, lng: -39.328138, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 016", lat: -7.217522, lng: -39.330402, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 017", lat: -7.212300, lng: -39.328341, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 018", lat: -7.227920, lng: -39.352961, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 019", lat: -7.218698, lng: -39.298127, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 020", lat: -7.262060, lng: -39.324573, tipo: "mista", modalidade: "parcial" },
+        { nome: "ESCOLA 021", lat: -7.215432, lng: -39.312345, tipo: "infantil", modalidade: "integral" },
+        { nome: "ESCOLA 022", lat: -7.223456, lng: -39.305678, tipo: "fundamental", modalidade: "parcial" },
+        { nome: "ESCOLA 023", lat: -7.234567, lng: -39.312345, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 024", lat: -7.245678, lng: -39.323456, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 025", lat: -7.256789, lng: -39.334567, tipo: "infantil", modalidade: "integral" },
+        { nome: "ESCOLA 026", lat: -7.267890, lng: -39.345678, tipo: "fundamental", modalidade: "parcial" },
+        { nome: "ESCOLA 027", lat: -7.201234, lng: -39.283456, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 028", lat: -7.212345, lng: -39.294567, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 029", lat: -7.223456, lng: -39.305678, tipo: "infantil", modalidade: "integral" },
+        { nome: "ESCOLA 030", lat: -7.234567, lng: -39.316789, tipo: "fundamental", modalidade: "parcial" },
+        { nome: "ESCOLA 031", lat: -7.195000, lng: -39.310000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 032", lat: -7.198000, lng: -39.315000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 033", lat: -7.202000, lng: -39.320000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 034", lat: -7.205000, lng: -39.325000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 035", lat: -7.208000, lng: -39.330000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 036", lat: -7.211000, lng: -39.335000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 037", lat: -7.214000, lng: -39.340000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 038", lat: -7.217000, lng: -39.345000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 039", lat: -7.220000, lng: -39.350000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 040", lat: -7.223000, lng: -39.280000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 041", lat: -7.226000, lng: -39.285000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 042", lat: -7.229000, lng: -39.290000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 043", lat: -7.232000, lng: -39.295000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 044", lat: -7.235000, lng: -39.300000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 045", lat: -7.238000, lng: -39.305000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 046", lat: -7.241000, lng: -39.310000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 047", lat: -7.244000, lng: -39.315000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 048", lat: -7.247000, lng: -39.320000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 049", lat: -7.250000, lng: -39.325000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 050", lat: -7.253000, lng: -39.330000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 051", lat: -7.256000, lng: -39.335000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 052", lat: -7.259000, lng: -39.340000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 053", lat: -7.262000, lng: -39.345000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 054", lat: -7.210000, lng: -39.270000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 055", lat: -7.213000, lng: -39.275000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 056", lat: -7.216000, lng: -39.280000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 057", lat: -7.219000, lng: -39.285000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 058", lat: -7.222000, lng: -39.290000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 059", lat: -7.225000, lng: -39.295000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 060", lat: -7.228000, lng: -39.300000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 061", lat: -7.185000, lng: -39.310000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 062", lat: -7.188000, lng: -39.315000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 063", lat: -7.191000, lng: -39.320000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 064", lat: -7.194000, lng: -39.325000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 065", lat: -7.197000, lng: -39.330000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 066", lat: -7.200000, lng: -39.335000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 067", lat: -7.203000, lng: -39.340000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 068", lat: -7.206000, lng: -39.345000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 069", lat: -7.209000, lng: -39.350000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 070", lat: -7.212000, lng: -39.355000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 071", lat: -7.235000, lng: -39.270000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 072", lat: -7.238000, lng: -39.275000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 073", lat: -7.241000, lng: -39.280000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 074", lat: -7.244000, lng: -39.285000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 075", lat: -7.247000, lng: -39.290000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 076", lat: -7.250000, lng: -39.295000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 077", lat: -7.253000, lng: -39.300000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 078", lat: -7.256000, lng: -39.305000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 079", lat: -7.259000, lng: -39.310000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 080", lat: -7.262000, lng: -39.315000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 081", lat: -7.210000, lng: -39.320000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 082", lat: -7.213000, lng: -39.325000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 083", lat: -7.216000, lng: -39.330000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 084", lat: -7.219000, lng: -39.335000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 085", lat: -7.222000, lng: -39.340000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 086", lat: -7.225000, lng: -39.345000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 087", lat: -7.228000, lng: -39.350000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 088", lat: -7.231000, lng: -39.355000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 089", lat: -7.234000, lng: -39.360000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 090", lat: -7.237000, lng: -39.265000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 091", lat: -7.240000, lng: -39.270000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 092", lat: -7.243000, lng: -39.275000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 093", lat: -7.246000, lng: -39.280000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 094", lat: -7.249000, lng: -39.285000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 095", lat: -7.252000, lng: -39.290000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 096", lat: -7.255000, lng: -39.295000, tipo: "infantil", modalidade: "parcial" },
+        { nome: "ESCOLA 097", lat: -7.258000, lng: -39.300000, tipo: "fundamental", modalidade: "integral" },
+        { nome: "ESCOLA 098", lat: -7.261000, lng: -39.305000, tipo: "equipamento", modalidade: "parcial" },
+        { nome: "ESCOLA 099", lat: -7.264000, lng: -39.310000, tipo: "mista", modalidade: "integral" },
+        { nome: "ESCOLA 100", lat: -7.267000, lng: -39.315000, tipo: "infantil", modalidade: "parcial" }
     ];
 
+    // Auto-ID: O sistema gera o ID sozinho a partir da ordem da lista acima
+    const escolas = escolasDadosBrutos.map((e, i) => ({ id: i + 1, ...e }));
+
+    // ==========================================
+    // 2. CONFIGURAÇÕES E LÓGICA
+    // ==========================================
+    const pontoPartida = { nome:"SEINFRA", lat:-7.194722, lng:-39.315364 };
     let selecionadas = [], marcadores = {}, polilinhas = [], filtroTipo = 'todos', filtroMod = 'todos', rotasAtivas = [];
 
     const map = L.map('map', { zoomControl: false }).setView([pontoPartida.lat, pontoPartida.lng], 13);
@@ -266,12 +234,9 @@
         const conteudo = numero !== null 
             ? `<span style="transform:rotate(45deg); color:white; font-weight:bold; font-size:14px">${numero}</span>`
             : `<i class="fas fa-school" style="transform:rotate(45deg); color:white; font-size:12px"></i>`;
-            
         return L.divIcon({
             className: '',
-            html: `<div class="${sel?'marker-pulse':''}" style="background:${getCor(e.tipo)}; width:30px; height:30px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3)">
-                    ${conteudo}
-                   </div>`,
+            html: `<div class="${sel?'marker-pulse':''}" style="background:${getCor(e.tipo)}; width:30px; height:30px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3)">${conteudo}</div>`,
             iconSize: [30, 30], iconAnchor: [15, 30]
         });
     }
@@ -280,7 +245,6 @@
 
     escolas.forEach(e => {
         const m = L.marker([e.lat, e.lng], { icon: criarIcone(e) }).addTo(map);
-        m.bindPopup(`<b>${e.nome}</b>`);
         m.on('click', () => alternar(e));
         marcadores[e.id] = m;
     });
@@ -294,30 +258,29 @@
 
     function atualizarUI() {
         document.getElementById('badgeCount').innerText = selecionadas.length;
-        const lista = document.getElementById('lista-selecionadas');
-        lista.innerHTML = selecionadas.map(s => `
+        document.getElementById('lista-selecionadas').innerHTML = selecionadas.map(s => `
             <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee; align-items:center">
                 <div style="font-size:13px"><b>${s.nome}</b><br><small>${s.tipo}</small></div>
                 <i class="fas fa-trash-alt" style="color:var(--danger); padding:10px" onclick="removerPorId(${s.id})"></i>
-            </div>
-        `).join("");
+            </div>`).join("");
 
         const dContent = document.getElementById('drawer-list');
         dContent.innerHTML = "";
-        const tipos = [...new Set(escolas.map(e => e.tipo))];
-        
-        tipos.forEach(t => {
-            const group = document.createElement('div');
-            group.innerHTML = `<div class="drawer-group-title">${t}</div>`;
-            escolas.filter(e => e.tipo === t).forEach(e => {
-                const isSel = selecionadas.find(s=>s.id===e.id);
-                const item = document.createElement('div');
-                item.className = `drawer-item ${isSel?'selected':''}`;
-                item.innerHTML = `<span>${e.nome}</span><span class="tag-mod tag-${e.modalidade}">${e.modalidade}</span>`;
-                item.onclick = () => { map.panTo([e.lat, e.lng]); alternar(e); };
-                group.appendChild(item);
-            });
-            dContent.appendChild(group);
+        ["infantil", "fundamental", "mista", "equipamento"].forEach(t => {
+            const grupo = document.createElement('div');
+            const listaEsc = escolas.filter(e => e.tipo === t);
+            if(listaEsc.length > 0) {
+                group.innerHTML = `<div class="drawer-group-title">${t}</div>`;
+                listaEsc.forEach(e => {
+                    const isSel = selecionadas.find(s=>s.id===e.id);
+                    const item = document.createElement('div');
+                    item.className = `drawer-item ${isSel?'selected':''}`;
+                    item.innerHTML = `<span>${e.nome}</span><span class="tag-mod tag-${e.modalidade}">${e.modalidade}</span>`;
+                    item.onclick = () => { map.panTo([e.lat, e.lng]); alternar(e); };
+                    group.appendChild(item);
+                });
+                dContent.appendChild(group);
+            }
         });
     }
 
@@ -325,46 +288,28 @@
         const t = e.target.value.toLowerCase();
         const lista = document.getElementById('lista-pesquisa');
         lista.innerHTML = "";
-        if (t.length < 1) { aplicarFiltrosFixos(); return; }
-        escolas.filter(esc => esc.nome.toLowerCase().includes(t)).forEach(esc => {
+        if (t.length < 2) return;
+        escolas.filter(esc => esc.nome.toLowerCase().includes(t)).slice(0,10).forEach(esc => {
             const i = document.createElement('div'); i.className = 'item-busca';
             i.innerHTML = `<i class="fas fa-search"></i><span>${esc.nome}</span>`;
             i.onclick = () => {
                 map.setView([esc.lat, esc.lng], 16);
                 if(!selecionadas.find(s=>s.id===esc.id)) alternar(esc);
-                e.target.value = "";
-                lista.innerHTML = "";
-                aplicarFiltrosFixos(); 
+                e.target.value = ""; lista.innerHTML = "";
             };
             lista.appendChild(i);
         });
     });
 
-    async function checkS() {
-        try { 
-            await fetch("https://redefisica.onrender.com/rotas", { method: 'HEAD' }); 
-            document.getElementById('ponto-status').style.background = "#34a853"; 
-        } catch(e) { 
-            document.getElementById('ponto-status').style.background = "#ea4335"; 
-            setTimeout(checkS, 10000); 
-        }
-    }
-    checkS();
-
     async function gerarRotas() {
         const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
         const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
-        const totalCapacidade = nVeiculos * capVeiculo;
-
-        if(selecionadas.length === 0) return alert("Selecione os locais no mapa primeiro!");
-        if(selecionadas.length > totalCapacidade) return alert(`Capacidade Insuficiente! Suporta ${totalCapacidade}.`);
-
+        if(selecionadas.length === 0) return alert("Selecione os locais!");
+        
         const btn = document.getElementById('btnGerar');
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OTIMIZANDO...';
-        
         polilinhas.forEach(p => map.removeLayer(p));
-        polilinhas = [];
-        document.getElementById("container-rotas").innerHTML = "";
+        polilinhas = []; document.getElementById("container-rotas").innerHTML = "";
 
         try {
             const r = await fetch("https://redefisica.onrender.com/rotas", {
@@ -382,97 +327,66 @@
             data.routes.forEach((rota, idx) => {
                 const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
                 const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
-                
                 const card = document.createElement("div");
-                card.className = "rota-card"; 
-                card.id = `card-rota-${idx}`;
+                card.className = "rota-card"; card.id = `card-rota-${idx}`;
                 card.style.borderLeftColor = cor;
                 card.innerHTML = `
                     <div class="rota-header" onclick="toggleFiltroRota(${idx}, this)">
                         <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px">
                             <span>EQUIPE ${idx+1}</span> <span>${(rota.distance/1000).toFixed(1)} km</span>
                         </div>
-                        <small style="color:#666">${pts.length} vistorias planejadas</small>
+                        <small style="color:#666">${pts.length} vistorias</small>
                     </div>
                     <div class="rota-details">
-                        <ol style="padding-left:18px; font-size:12px; margin-bottom:10px">
-                            ${pts.map(p => `<li>${p.nome}</li>`).join("")}
-                        </ol>
+                        <ol style="padding-left:18px; font-size:12px; margin-bottom:10px">${pts.map(p => `<li>${p.nome}</li>`).join("")}</ol>
                         <a href="https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR NO GPS</a>
                     </div>`;
                 document.getElementById("container-rotas").appendChild(card);
                 if(rota.geometry) {
                     const poly = L.polyline(decode(rota.geometry), {color:cor, weight:6});
-                    poly.addTo(map);
-                    polilinhas.push(poly);
+                    poly.addTo(map); polilinhas.push(poly);
                 }
             });
             if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
-        } catch(e) { alert("Erro ao calcular."); }
+        } catch(e) { alert("Erro de conexão."); }
         finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA'; }
     }
 
     function toggleFiltroRota(idx, el) {
         const details = el.nextElementSibling;
-        const isActive = details.classList.contains('active');
-        
-        // Esconde ou mostra outros cards (Melhoria 1)
-        document.querySelectorAll('.rota-card').forEach(c => {
-            if(c.id === `card-rota-${idx}`) {
-                c.style.display = "block";
-            } else {
-                c.style.display = isActive ? "block" : "none";
-            }
-        });
-
+        const isOpening = !details.classList.contains('active');
+        document.querySelectorAll('.rota-card').forEach(c => c.style.display = (isOpening && c.id !== `card-rota-${idx}`) ? "none" : "block");
         document.querySelectorAll('.rota-details').forEach(d => d.classList.remove('active'));
+        if(isOpening) {
+            details.classList.add('active');
+            const idsRota = rotasAtivas[idx].steps.filter(s => s.type === "job").map(s => Number(s.id));
+            polilinhas.forEach((p, pIdx) => pIdx === idx ? map.addLayer(p) : map.removeLayer(p));
+            escolas.forEach(e => {
+                const ordem = idsRota.indexOf(e.id);
+                if(ordem === -1) map.removeLayer(marcadores[e.id]);
+                else { marcadores[e.id].setIcon(criarIcone(e, true, ordem + 1)); marcadores[e.id].addTo(map); }
+            });
+        } else { resetVisualRotas(); }
+    }
+
+    function resetVisualRotas() {
         polilinhas.forEach(p => map.addLayer(p));
+        aplicarFiltrosFixos();
         escolas.forEach(e => {
             const isSel = selecionadas.find(s=>s.id===e.id);
             marcadores[e.id].setIcon(criarIcone(e, isSel));
         });
-        aplicarFiltrosFixos();
-
-        if (!isActive) {
-            details.classList.add('active');
-            const steps = rotasAtivas[idx].steps.filter(s => s.type === "job");
-            const idsRota = steps.map(s => Number(s.id));
-            polilinhas.forEach((p, pIdx) => { if(pIdx !== idx) map.removeLayer(p); });
-            escolas.forEach(e => {
-                const ordem = idsRota.indexOf(e.id);
-                if(ordem === -1) { map.removeLayer(marcadores[e.id]); } 
-                else {
-                    marcadores[e.id].setIcon(criarIcone(e, true, ordem + 1));
-                    marcadores[e.id].addTo(map);
-                }
-            });
-            const grupoRota = L.featureGroup(idsRota.map(id => marcadores[id]));
-            map.fitBounds(grupoRota.getBounds(), {padding: [80,80]});
-        }
     }
 
-    // RESET GERAL (Melhoria 2)
     function resetGeral() {
-        selecionadas = [];
-        polilinhas.forEach(p => map.removeLayer(p));
-        polilinhas = [];
+        if(!confirm("Limpar tudo?")) return;
+        selecionadas = []; polilinhas.forEach(p => map.removeLayer(p)); polilinhas = [];
         document.getElementById("container-rotas").innerHTML = "";
-        
-        // Reset de Filtros
-        filtroTipo = 'todos';
-        filtroMod = 'todos';
+        filtroTipo = 'todos'; filtroMod = 'todos';
         document.querySelectorAll('.pill').forEach(p => p.classList.remove('active', 'active-mod'));
         document.querySelector('#row-tipos .pill').classList.add('active');
-
-        // Reset de Marcadores
-        escolas.forEach(e => {
-            marcadores[e.id].setIcon(criarIcone(e, false));
-            marcadores[e.id].addTo(map);
-        });
-        
-        atualizarUI();
-        map.setView([pontoPartida.lat, pontoPartida.lng], 13);
-        if(document.getElementById('panel').classList.contains('open')) togglePanel();
+        escolas.forEach(e => { marcadores[e.id].setIcon(criarIcone(e, false)); marcadores[e.id].addTo(map); });
+        atualizarUI(); map.setView([pontoPartida.lat, pontoPartida.lng], 13);
     }
 
     function setFiltroTipo(t, el) {
@@ -495,10 +409,7 @@
     }
 
     function removerPorId(id) { alternar(escolas.find(e => e.id === id)); }
-    function toggleDrawer() { 
-        document.getElementById('drawer').classList.toggle('open'); 
-        document.getElementById('overlay').classList.toggle('active'); 
-    }
+    function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); document.getElementById('overlay').classList.toggle('active'); }
     function togglePanel() { document.getElementById('panel').classList.toggle('open'); }
     function toggleModal(s) { document.getElementById('modal').style.display = s ? 'flex' : 'none'; }
     
@@ -512,6 +423,7 @@
             coords.push([lat/1e5, lng/1e5]);
         } return coords;
     }
+    
     atualizarUI();
 </script>
 </body>
