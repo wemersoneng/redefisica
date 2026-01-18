@@ -28,7 +28,7 @@ input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0
 
 <div id="topo">
   <strong>
-    Roteirização de Vistorias — Educação<br>
+    Roteirização de Vistorias — REDE FÍSICA<br>
     <span id="contador">0 escolas selecionadas</span>
   </strong>
 </div>
@@ -169,7 +169,9 @@ async function gerarRotas(){
       body: JSON.stringify(payload)
     });
     const data = await resp.json();
-    if(data.error){ console.error(data.error); alert("Erro na API"); return; }
+    console.log(data);
+    if(data.error){ alert("Erro na API: "+JSON.stringify(data.error)); return; }
+
 
     const container=document.getElementById("rotas-geradas"); container.innerHTML="";
 
