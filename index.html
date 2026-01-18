@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Roteirização de Vistorias</title>
+  <title>Planejamento de Rotas – Educação</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Leaflet -->
@@ -10,9 +10,8 @@
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-  </script>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
     body {
@@ -20,245 +19,198 @@
       font-family: Arial, Helvetica, sans-serif;
     }
 
-    #topo {
-      padding: 10px;
-      background: #1f4fd8;
-      color: white;
-      font-size: 16px;
-    }
-
-    #contador {
-      font-size: 14px;
-      opacity: 0.9;
+    h1 {
+      font-size: 18px;
+      margin: 10px;
     }
 
     #map {
-      height: 60vh;
+      height: calc(100vh - 60px);
+      width: 100%;
     }
 
-    #painel {
-      padding: 10px;
-      max-height: 40vh;
+    .panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 45%;
+      background: #ffffff;
+      border-top: 2px solid #ccc;
       overflow-y: auto;
-      background: #f5f5f5;
+      padding: 10px;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.2);
+      font-size: 14px;
     }
 
-    .escola-item {
+    .school-item {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 6px;
+      margin-bottom: 6px;
+    }
+
+    .school-item input {
+      margin-right: 8px;
+      transform: scale(1.2);
+    }
+
+    .selected-list {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #ddd;
+    }
+
+    .selected-item {
+      font-size: 13px;
       margin-bottom: 4px;
-      background: white;
-      border-radius: 4px;
-      font-size: 15px;
-    }
-
-    .escola-item button {
-      background: #d9534f;
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .escola-item span {
-      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
 
-  <div id="topo">
-    <strong>
-      Roteirização de Vistorias — Educação<br>
-      <span id="contador">0 escolas selecionadas</span>
-    </strong>
-  </div>
+<h1>Planejamento de Rotas – Educação</h1>
 
-  <div id="map"></div>
+<div id="map"></div>
 
-  <div id="painel">
+<div class="panel" id="panel">
+  <strong>Selecionar escolas</strong>
+  <div id="schoolList"></div>
+
+  <div class="selected-list">
     <strong>Escolas selecionadas</strong>
-    <div id="lista-escolas">
-      <em>Nenhuma escola selecionada.</em>
-    </div>
+    <div id="selectedList"></div>
   </div>
+</div>
 
-  <script>
-    // =========================
-    // DADOS
-    // =========================
+<script>
+  // ==========================
+  // DADOS
+  // ==========================
 
-    const pontoPartida = {
-      nome: "SEINFRA",
-      lat: -7.194722139209482,
-      lng: -39.31536456230205
-    };
+  const pontoPartida = {
+    nome: "SEINFRA",
+    lat: -7.194722139209482,
+    lng: -39.31536456230205
+  };
 
-    const escolas = [
-      { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
-      { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
-      { nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.27063735387350 },
-      { nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.34014211541830 },
-      { nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.32037563243490 },
-      { nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.30402430844510 },
-      { nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.31205352283060 },
-      { nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.33808108252610 },
-      { nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.28818071378180 },
-      { nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.22127336881870, lng: -39.30495688808320 },
-      { nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.20976881643100, lng: -39.30436156071580 },
-      { nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.25668606344500, lng: -39.33679274553820 },
-      { nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.29138697222790 },
-      { nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.33499142833630 },
-      { nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.32813794297350 },
-      { nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.33040228695120 },
-      { nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.32834106355910 },
-      { nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.35296136595570 },
-      { nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.29812692630730 },
-      { nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.32457321991130 }
-    ];
+  const escolas = [
+    { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.2990276371078 },
+    { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.337978081951 },
+    { nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.2706373538735 },
+    { nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.3401421154183 },
+    { nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.3203756324349 },
+    { nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.3040243084451 },
+    { nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.3120535228306 },
+    { nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.3380810825261 },
+    { nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.2881807137818 },
+    { nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.2212733688187, lng: -39.3049568880832 },
+    { nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.209768816431, lng: -39.3043615607158 },
+    { nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.256686063445, lng: -39.3367927455382 },
+    { nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.2913869722279 },
+    { nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.3349914283363 },
+    { nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.3281379429735 },
+    { nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.3304022869512 },
+    { nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.3283410635591 },
+    { nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.3529613659557 },
+    { nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.2981269263073 },
+    { nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.3245732199113 }
+  ];
 
-    const escolasSelecionadas = [];
-    const marcadores = {};
+  // ==========================
+  // MAPA
+  // ==========================
 
-    // =========================
-    // MAPA
-    // =========================
+  const map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
 
-    const map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap"
+  // Ícones
+  const iconEscola = L.circleMarker([0,0], {
+    radius: 6,
+    color: "#1f78b4",
+    fillColor: "#1f78b4",
+    fillOpacity: 0.9
+  });
+
+  const iconPartida = L.circleMarker(
+    [pontoPartida.lat, pontoPartida.lng],
+    {
+      radius: 8,
+      color: "#e31a1c",
+      fillColor: "#e31a1c",
+      fillOpacity: 1
+    }
+  ).addTo(map).bindPopup("SEINFRA");
+
+  // ==========================
+  // CONTROLE
+  // ==========================
+
+  const selected = new Set();
+  const lines = [];
+
+  const schoolList = document.getElementById("schoolList");
+  const selectedList = document.getElementById("selectedList");
+
+  function atualizarSelecionados() {
+    selectedList.innerHTML = "";
+    lines.forEach(l => map.removeLayer(l));
+    lines.length = 0;
+
+    selected.forEach(i => {
+      const s = escolas[i];
+
+      const div = document.createElement("div");
+      div.className = "selected-item";
+      div.textContent = s.nome;
+      selectedList.appendChild(div);
+
+      const line = L.polyline(
+        [
+          [pontoPartida.lat, pontoPartida.lng],
+          [s.lat, s.lng]
+        ],
+        { color: "#555", dashArray: "4,4" }
+      ).addTo(map);
+
+      lines.push(line);
+    });
+  }
+
+  escolas.forEach((s, i) => {
+    const marker = L.circleMarker([s.lat, s.lng], {
+      radius: 6,
+      color: "#1f78b4",
+      fillColor: "#1f78b4",
+      fillOpacity: 0.9
     }).addTo(map);
 
-    const iconeEscola = L.icon({
-      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      iconSize: [20, 32],
-      iconAnchor: [10, 32],
-      popupAnchor: [1, -26]
+    marker.bindPopup(s.nome);
+
+    const item = document.createElement("div");
+    item.className = "school-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) selected.add(i);
+      else selected.delete(i);
+      atualizarSelecionados();
     });
 
-    const iconeSelecionado = L.icon({
-      iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
-      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      iconSize: [20, 32],
-      iconAnchor: [10, 32]
-    });
+    const label = document.createElement("label");
+    label.textContent = s.nome;
 
-    const iconeSEINFRA = L.icon({
-      iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      iconSize: [22, 36],
-      iconAnchor: [11, 36]
-    });
-
-    L.marker([pontoPartida.lat, pontoPartida.lng], { icon: iconeSEINFRA })
-      .addTo(map)
-      .bindPopup("<strong>SEINFRA</strong><br>Ponto de partida");
-
-    escolas.forEach(e => {
-      const marcador = L.marker([e.lat, e.lng], { icon: iconeEscola })
-        .addTo(map)
-        .bindPopup(`<strong>${e.nome}</strong><br>Adicionar à rota`);
-
-      marcador.selecionado = false;
-      marcadores[e.nome] = marcador;
-
-      marcador.on("click", () => alternarEscola(e));
-    });
-
-    // =========================
-    // FUNÇÕES
-    // =========================
-
-    function distanciaEmKm(lat1, lng1, lat2, lng2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLng = (lng2 - lng1) * Math.PI / 180;
-
-      const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLng / 2) ** 2;
-
-      return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    }
-
-    function ordenarEscolasPorProximidade() {
-      escolasSelecionadas.sort((a, b) => {
-        const da = distanciaEmKm(pontoPartida.lat, pontoPartida.lng, a.lat, a.lng);
-        const db = distanciaEmKm(pontoPartida.lat, pontoPartida.lng, b.lat, b.lng);
-        return da - db;
-      });
-    }
-
-    function alternarEscola(escola) {
-      const marcador = marcadores[escola.nome];
-
-      if (!marcador.selecionado) {
-        marcador.setIcon(iconeSelecionado);
-        marcador.selecionado = true;
-        escolasSelecionadas.push(escola);
-      } else {
-        removerEscola(escola.nome);
-        return;
-      }
-
-      atualizarUI();
-    }
-
-    function removerEscola(nome) {
-      const index = escolasSelecionadas.findIndex(e => e.nome === nome);
-      if (index !== -1) escolasSelecionadas.splice(index, 1);
-
-      const marcador = marcadores[nome];
-      marcador.setIcon(iconeEscola);
-      marcador.selecionado = false;
-
-      atualizarUI();
-    }
-
-    function atualizarUI() {
-      ordenarEscolasPorProximidade();
-
-      document.getElementById("contador").textContent =
-        `${escolasSelecionadas.length} escolas selecionadas`;
-
-      const lista = document.getElementById("lista-escolas");
-      lista.innerHTML = "";
-
-      if (escolasSelecionadas.length === 0) {
-        lista.innerHTML = "<em>Nenhuma escola selecionada.</em>";
-        return;
-      }
-
-      escolasSelecionadas.forEach(e => {
-        const div = document.createElement("div");
-        div.className = "escola-item";
-
-        const nome = document.createElement("span");
-        nome.textContent = e.nome;
-        nome.onclick = () => {
-          map.setView([e.lat, e.lng], 16);
-          marcadores[e.nome].openPopup();
-        };
-
-        const btn = document.createElement("button");
-        btn.textContent = "Remover";
-        btn.onclick = () => removerEscola(e.nome);
-
-        div.appendChild(nome);
-        div.appendChild(btn);
-        lista.appendChild(div);
-      });
-    }
-  </script>
+    item.appendChild(checkbox);
+    item.appendChild(label);
+    schoolList.appendChild(item);
+  });
+</script>
 
 </body>
 </html>
-
