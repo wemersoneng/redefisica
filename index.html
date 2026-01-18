@@ -224,10 +224,10 @@
 // 1. Definição das Cores (Lógica de intensidade para Integral/Parcial)
 function getCor(tipo, modalidade) {
     const cores = {
-        infantil:    { parcial: '#1bdad7', integral: '#17bebb' }, // Tons de Azul
-        fundamental: { parcial: '#8dc25b', integral: '#76b041' }, // Tons de Verde
-        mista:       { parcial: '#e86f4a', integral: '#e4572e' }, // Tons de Laranja
-        equipamento: { parcial: '#4c4246', integral: '#2e282a' }  // Tons de Cinza
+        infantil:    { parcial: '#1bdad7', integral: '#14a3a1' }, // Tons de Azul
+        fundamental: { parcial: '#8dc25b', integral: '#50772c' }, // Tons de Verde
+        mista:       { parcial: '#e86f4a', integral: '#a23615' }, // Tons de Laranja
+        equipamento: { parcial: '#78686f', integral: '#2e282a' }  // Tons de Cinza
     };
     return cores[tipo][modalidade] || '#1a73e8';
 }
@@ -237,7 +237,7 @@ function getSimbolo(tipo) {
     const simbolos = {
         infantil: 'fa-baby',
         fundamental: 'fa-book',
-        mista: 'fa-graduation-cap', // Sugestão para mista
+        mista: 'fa-graduation-cap',
         equipamento: 'fa-school'
     };
     return simbolos[tipo] || 'fa-map-marker-alt';
