@@ -2,246 +2,329 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
-    <title>Roteirização de Vistorias - Juazeiro</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>Rotas de Vistoria Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        body { margin:0; font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; }
-        #topo { padding:15px; background:#1f4fd8; color:white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        #contador { font-size:13px; opacity:0.9; display: block; margin-top: 4px; }
-        #map { height:40vh; width: 100%; }
-        #painel { padding:15px; height: 60vh; overflow-y:auto; box-sizing: border-box; padding-bottom: 100px; }
-        
-        .secao { background: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        h3 { margin: 0 0 10px 0; font-size: 16px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        
-        input[type="text"], input[type="number"] { width:100%; padding:10px; margin:8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        
-        .resultado-busca, .escola-item { display:flex; align-items:center; justify-content:space-between; padding:8px; border-bottom: 1px solid #eee; font-size: 13px; }
-        .escola-item button { background:#ff4d4d; color:white; border:none; padding:5px 10px; border-radius: 4px; cursor:pointer; }
-        
-        .rota-item { background: white; padding: 15px; margin-bottom: 12px; border-radius: 8px; border-left: 6px solid #1f4fd8; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .rota-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .rota-titulo { font-weight: bold; color: #1f4fd8; font-size: 14px; }
-        
-        .btn-google { background: #4285F4; color: white; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        
-        .lista-escolas-rota { margin: 12px 0 0 0; padding-left: 20px; font-size: 14px; color: #333; }
-        .lista-escolas-rota li { margin-bottom: 8px; font-weight: 500; }
+        :root {
+            --primary: #1a73e8;
+            --success: #34a853;
+            --danger: #ea4335;
+            --dark: #202124;
+            --gray: #f1f3f4;
+        }
 
-        #gerar-rotas { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; margin-bottom: 10px; }
-        #gerar-rotas:disabled { background: #ccc; }
+        body { margin:0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--gray); overflow: hidden; }
+        
+        #map { height: 100vh; width: 100vw; z-index: 1; }
+
+        /* Barra de Busca Minimalista */
+        .search-wrapper {
+            position: absolute; top: 15px; left: 15px; right: 65px;
+            z-index: 1000; display: flex; align-items: center;
+        }
+        .search-box {
+            background: white; border-radius: 24px; display: flex; align-items: center;
+            padding: 5px 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            width: 45px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; white-space: nowrap;
+        }
+        .search-box.active { width: 100%; }
+        .search-box input {
+            border: none; outline: none; padding: 10px; width: 100%; font-size: 16px; margin-left: 10px;
+        }
+        .search-icon { color: var(--primary); cursor: pointer; font-size: 18px; min-width: 20px; }
+
+        /* Configurações */
+        .settings-btn {
+            position: absolute; top: 15px; right: 10px; z-index: 1000;
+            background: white; border-radius: 50%; width: 48px; height: 48px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2); color: var(--dark);
+        }
+
+        #resultados-busca {
+            position: absolute; top: 75px; left: 15px; right: 15px;
+            background: white; border-radius: 12px; z-index: 999;
+            max-height: 250px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+        }
+        #resultados-busca.active { display: block; }
+
+        /* FAB - Botão Flutuante */
+        .fab {
+            position: absolute; bottom: 80px; right: 20px; z-index: 1000;
+            background: var(--success); color: white; border: none;
+            width: 56px; height: 56px; border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 22px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Bottom Panel */
+        .selected-panel {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 1001;
+            background: white; border-radius: 20px 20px 0 0;
+            transform: translateY(calc(100% - 60px)); transition: 0.4s ease;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        .selected-panel.open { transform: translateY(0); }
+        .panel-header {
+            height: 60px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; cursor: pointer;
+        }
+        .panel-content { height: 35vh; overflow-y: auto; padding: 0 15px 15px; }
+
+        /* Toast de Cópia */
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--dark); color: white; padding: 10px 20px;
+            border-radius: 25px; font-size: 14px; z-index: 3000;
+            display: none; animation: fadeInOut 2s forwards;
+        }
+
+        /* Cards de Rota */
+        #container-rotas {
+            position: absolute; top: 80px; left: 15px; right: 15px; z-index: 998;
+            pointer-events: none; max-height: 60vh; overflow-y: auto;
+        }
+        .rota-card {
+            background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: auto;
+            border-left: 6px solid var(--primary);
+        }
+        .btn-acao {
+            background: var(--gray); color: var(--dark); padding: 8px;
+            border-radius: 8px; text-decoration: none; font-size: 16px;
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+        }
+
+        .modal {
+            display: none; position: fixed; z-index: 2000; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+        }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 85%; max-width: 320px; }
+
+        @keyframes fadeInOut { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-<div id="topo">
-    <strong>Roteirização de Vistorias</strong>
-    <span id="contador">0 escolas selecionadas</span>
-</div>
+    <div id="toast">Copiado para o WhatsApp!</div>
 
-<div id="map"></div>
-
-<div id="painel">
-    <div class="secao">
-        <h3>1. Buscar Escola</h3>
-        <input type="text" id="busca" placeholder="Digite o nome da escola...">
-        <div id="resultados-busca"></div>
+    <div class="search-wrapper">
+        <div class="search-box" id="searchBox">
+            <i class="fas fa-search search-icon" onclick="toggleSearch()"></i>
+            <input type="text" id="busca" placeholder="Buscar escola...">
+        </div>
     </div>
 
-    <div class="secao">
-        <h3>2. Escolas Selecionadas</h3>
-        <div id="lista-escolas"><em>Nenhuma selecionada.</em></div>
+    <div class="settings-btn" onclick="toggleModal(true)">
+        <i class="fas fa-sliders-h"></i>
     </div>
 
-    <div class="secao">
-        <h3>3. Configuração</h3>
-        <label>Número de Veículos:</label>
-        <input type="number" id="num-rotas" min="1" value="2">
-        <label>Máximo de Escolas por Veículo:</label>
-        <input type="number" id="max-escolas" min="1" value="5">
-        <button id="gerar-rotas">Gerar Rotas Otimizadas</button>
-    </div>
-
+    <div id="map"></div>
+    <div id="resultados-busca"></div>
     <div id="container-rotas"></div>
-</div>
+
+    <button class="fab" onclick="gerarRotas()">
+        <i class="fas fa-directions"></i>
+    </button>
+
+    <div class="selected-panel" id="panel">
+        <div class="panel-header" onclick="togglePanel()">
+            <span><i class="fas fa-list-check"></i> Selecionadas (<b id="badgeCount">0</b>)</span>
+            <i class="fas fa-chevron-up"></i>
+        </div>
+        <div class="panel-content" id="lista-selecionadas"></div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0">Configuração</h3>
+            <label style="font-size:14px">Nº de Carros:</label>
+            <input type="number" id="num-rotas" value="2" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ddd; border-radius:8px">
+            <label style="font-size:14px">Escolas por Carro:</label>
+            <input type="number" id="max-escolas" value="5" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ddd; border-radius:8px">
+            <button onclick="toggleModal(false)" style="width:100%; background:var(--primary); color:white; border:none; padding:12px; border-radius:8px; font-weight:bold">FECHAR</button>
+        </div>
+    </div>
 
 <script>
-const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
+    const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
+    const escolas = [
+        { id: 1, nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
+        { id: 2, nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
+        { id: 3, nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.27063735387350 },
+        { id: 4, nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.34014211541830 },
+        { id: 5, nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.32037563243490 },
+        { id: 6, nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.30402430844510 },
+        { id: 7, nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.31205352283060 },
+        { id: 8, nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.33808108252610 },
+        { id: 9, nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.28818071378180 },
+        { id: 10, nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.22127336881870, lng: -39.30495688808320 },
+        { id: 11, nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.20976881643100, lng: -39.30436156071580 },
+        { id: 12, nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.25668606344500, lng: -39.33679274553820 },
+        { id: 13, nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.29138697222790 },
+        { id: 14, nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.33499142833630 },
+        { id: 15, nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.32813794297350 },
+        { id: 16, nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.33040228695120 },
+        { id: 17, nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.32834106355910 },
+        { id: 18, nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.35296136595570 },
+        { id: 19, nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.29812692630730 },
+        { id: 20, nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.32457321991130 }
+    ];
 
-const escolas = [
-    { id: 1, nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
-    { id: 2, nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
-    { id: 3, nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.27063735387350 },
-    { id: 4, nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.34014211541830 },
-    { id: 5, nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.32037563243490 },
-    { id: 6, nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.30402430844510 },
-    { id: 7, nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.31205352283060 },
-    { id: 8, nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.33808108252610 },
-    { id: 9, nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.28818071378180 },
-    { id: 10, nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.22127336881870, lng: -39.30495688808320 },
-    { id: 11, nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.20976881643100, lng: -39.30436156071580 },
-    { id: 12, nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.25668606344500, lng: -39.33679274553820 },
-    { id: 13, nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.29138697222790 },
-    { id: 14, nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.33499142833630 },
-    { id: 15, nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.32813794297350 },
-    { id: 16, nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.33040228695120 },
-    { id: 17, nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.32834106355910 },
-    { id: 18, nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.35296136595570 },
-    { id: 19, nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.29812692630730 },
-    { id: 20, nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.32457321991130 }
-];
+    let escolasSelecionadas = [];
+    let marcadores = {};
+    let linhasRotas = [];
 
-let escolasSelecionadas = [];
-let marcadores = {};
-let linhasRotas = [];
+    const map = L.map("map", { zoomControl: false }).setView([pontoPartida.lat, pontoPartida.lng], 13);
+    L.tileLayer("https://{s}.tile.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png").addTo(map);
 
-const map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-
-const iconeVerde = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
-const iconeAzul = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
-const iconeVermelho = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[22,36], iconAnchor:[11,36] });
-
-L.marker([pontoPartida.lat, pontoPartida.lng], {icon:iconeVermelho}).addTo(map).bindPopup("<b>SEINFRA</b>");
-
-escolas.forEach(e => {
-    const m = L.marker([e.lat, e.lng], {icon:iconeAzul}).addTo(map);
-    m.on("click", () => alternarEscola(e));
-    marcadores[e.id] = m;
-});
-
-function alternarEscola(e) {
-    const idx = escolasSelecionadas.findIndex(s => s.id === e.id);
-    if (idx === -1) {
-        escolasSelecionadas.push(e);
-        marcadores[e.id].setIcon(iconeVerde);
-    } else {
-        escolasSelecionadas.splice(idx, 1);
-        marcadores[e.id].setIcon(iconeAzul);
-    }
-    atualizarUI();
-}
-
-function atualizarUI() {
-    document.getElementById("contador").textContent = `${escolasSelecionadas.length} selecionadas`;
-    const lista = document.getElementById("lista-escolas");
-    lista.innerHTML = escolasSelecionadas.length ? "" : "<em>Nenhuma selecionada.</em>";
-    escolasSelecionadas.forEach(e => {
-        const item = document.createElement("div");
-        item.className = "escola-item";
-        item.innerHTML = `<span>${e.nome}</span><button onclick='removerPorId(${e.id})'>Remover</button>`;
-        lista.appendChild(item);
-    });
-}
-
-function removerPorId(id) {
-    const escola = escolas.find(e => e.id === id);
-    if(escola) alternarEscola(escola);
-}
-
-function atualizarBusca() {
-    const termo = document.getElementById("busca").value.toLowerCase();
-    const res = document.getElementById("resultados-busca");
-    res.innerHTML = "";
-    if (termo.length < 2) return;
-    escolas.filter(e => e.nome.toLowerCase().includes(termo)).forEach(e => {
-        const div = document.createElement("div");
-        div.className = "resultado-busca";
-        const check = escolasSelecionadas.some(s => s.id === e.id) ? "checked" : "";
-        div.innerHTML = `<input type="checkbox" ${check} onchange='removerPorId(${e.id})'> <label>${e.nome}</label>`;
-        res.appendChild(div);
-    });
-}
-document.getElementById("busca").addEventListener("input", atualizarBusca);
-
-function decodePolyline(str) {
-    let index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null, lat_change, lng_change;
-    while (index < str.length) {
-        byte = null; shift = 0; result = 0;
-        do { byte = str.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
-        lat_change = ((result & 1) ? ~(result >> 1) : (result >> 1)); lat += lat_change;
-        byte = null; shift = 0; result = 0;
-        do { byte = str.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
-        lng_change = ((result & 1) ? ~(result >> 1) : (result >> 1)); lng += lng_change;
-        coordinates.push([lat / 100000, lng / 100000]);
-    }
-    return coordinates;
-}
-
-async function gerarRotas() {
-    if (!escolasSelecionadas.length) return alert("Selecione escolas!");
-    const btn = document.getElementById("gerar-rotas");
-    btn.disabled = true; btn.textContent = "Otimizando Trajeto...";
+    const iconeVerde = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34] });
+    const iconeAzul = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34] });
     
-    linhasRotas.forEach(l => map.removeLayer(l));
-    linhasRotas = [];
+    L.marker([pontoPartida.lat, pontoPartida.lng], {icon: L.icon({iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", iconSize:[25,41]})}).addTo(map).bindPopup("<b>SEINFRA</b>");
 
-    const jobs = escolasSelecionadas.map(e => ({ id: e.id, location: [e.lng, e.lat], amount: [1] }));
-    const n = parseInt(document.getElementById("num-rotas").value);
-    const m = parseInt(document.getElementById("max-escolas").value);
-    const vehicles = Array.from({length: n}, (_, i) => ({ id: i, profile: "driving-car", start: [pontoPartida.lng, pontoPartida.lat], end: [pontoPartida.lng, pontoPartida.lat], capacity: [m] }));
-
-    try {
-        const r = await fetch("https://redefisica.onrender.com/rotas", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ jobs, vehicles })
+    escolas.forEach(e => {
+        const m = L.marker([e.lat, e.lng], {icon:iconeAzul}).addTo(map).bindPopup(`<b>${e.nome}</b>`);
+        m.on("click", () => {
+            map.flyTo([e.lat, e.lng], 16);
+            alternarEscola(e);
         });
-        const data = await r.json();
-        if (data.error) throw new Error(data.error);
+        marcadores[e.id] = m;
+    });
 
-        const container = document.getElementById("container-rotas");
-        container.innerHTML = "<h3>Rotas Geradas</h3>";
+    function toggleSearch() { document.getElementById("searchBox").classList.toggle("active"); }
+    function togglePanel() { document.getElementById("panel").classList.toggle("open"); }
+    function toggleModal(show) { document.getElementById("settingsModal").style.display = show ? "flex" : "none"; }
 
-        data.routes.forEach((rota, i) => {
-            const cor = `hsl(${(i * 137) % 360}, 70%, 45%)`;
-            
-            // CORREÇÃO: Usar s.id para identificar a escola
-            const listaItens = rota.steps
-                .filter(s => s.type === "job")
-                .map(s => {
-                    const esc = escolas.find(e => e.id === Number(s.id));
-                    return esc ? `<li>${esc.nome}</li>` : `<li>Escola não encontrada (ID: ${s.id})</li>`;
-                }).join("");
-
-            // LINK GOOGLE MAPS CORRIGIDO PARA CELULAR
-            // Formato: /dir/lat,lng/lat,lng/...
-            const coordsMap = rota.steps.map(s => `${s.location[1]},${s.location[0]}`);
-            const urlGoogle = `https://www.google.com/maps/dir/${coordsMap.join("/")}`;
-
-            const card = document.createElement("div");
-            card.className = "rota-item";
-            card.style.borderLeftColor = cor;
-            card.innerHTML = `
-                <div class="rota-header">
-                    <span class="rota-titulo">ROTA ${i+1} (${(rota.distance/1000).toFixed(1)} km)</span>
-                    <a href="${urlGoogle}" target="_blank" class="btn-google">ABRIR NO GPS ↗</a>
-                </div>
-                <ol class="lista-escolas-rota">${listaItens}</ol>
-            `;
-            container.appendChild(card);
-
-            if (rota.geometry) {
-                const pts = decodePolyline(rota.geometry);
-                const poly = L.polyline(pts, {color: cor, weight: 5, opacity: 0.8}).addTo(map);
-                linhasRotas.push(poly);
-            }
-        });
-
-        if (linhasRotas.length) map.fitBounds(new L.featureGroup(linhasRotas).getBounds());
-    } catch (err) {
-        alert("Erro no servidor. Tente novamente em instantes.");
-        console.error(err);
-    } finally {
-        btn.disabled = false; btn.textContent = "Gerar Rotas Otimizadas";
+    function alternarEscola(e) {
+        const idx = escolasSelecionadas.findIndex(s => s.id === e.id);
+        if (idx === -1) {
+            escolasSelecionadas.push(e);
+            marcadores[e.id].setIcon(iconeVerde);
+            marcadores[e.id].openPopup();
+        } else {
+            escolasSelecionadas.splice(idx, 1);
+            marcadores[e.id].setIcon(iconeAzul);
+        }
+        document.getElementById("badgeCount").textContent = escolasSelecionadas.length;
+        renderizarLista();
     }
-}
 
-document.getElementById("gerar-rotas").addEventListener("click", gerarRotas);
+    function renderizarLista() {
+        const c = document.getElementById("lista-selecionadas");
+        c.innerHTML = escolasSelecionadas.length ? "" : "<p style='color:#999;text-align:center'>Nenhuma selecionada</p>";
+        escolasSelecionadas.forEach(e => {
+            const d = document.createElement("div");
+            d.style = "display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee; font-size:13px";
+            d.innerHTML = `<span>${e.nome}</span><i class="fas fa-trash" style="color:var(--danger)" onclick="removerPorId(${e.id})"></i>`;
+            c.appendChild(d);
+        });
+    }
+
+    function removerPorId(id) { alternarEscola(escolas.find(e => e.id === id)); }
+
+    async function gerarRotas() {
+        if (!escolasSelecionadas.length) return alert("Selecione escolas!");
+        const fab = document.querySelector(".fab");
+        fab.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        linhasRotas.forEach(l => map.removeLayer(l));
+        document.getElementById("container-rotas").innerHTML = "";
+
+        const jobs = escolasSelecionadas.map(e => ({ id: e.id, location: [e.lng, e.lat], amount: [1] }));
+        const v = parseInt(document.getElementById("num-rotas").value);
+        const m = parseInt(document.getElementById("max-escolas").value);
+        const vehicles = Array.from({length: v}, (_, i) => ({ id: i, profile: "driving-car", start: [pontoPartida.lng, pontoPartida.lat], end: [pontoPartida.lng, pontoPartida.lat], capacity: [m] }));
+
+        try {
+            const r = await fetch("https://redefisica.onrender.com/rotas", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ jobs, vehicles })
+            });
+            const data = await r.json();
+            
+            data.routes.forEach((rota, i) => {
+                const cor = `hsl(${(i * 140) % 360}, 75%, 50%)`;
+                const nomes = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)).nome);
+                const listaLi = nomes.map((n, idx) => `<li>${idx+1}. ${n}</li>`).join("");
+
+                const coordsMap = rota.steps.map(s => `${s.location[1]},${s.location[0]}`);
+                const urlGoogle = `https://www.google.com/maps/dir/${coordsMap.join("/")}`;
+                
+                const textoCopia = `*ROTA ${i+1}*\nDistância: ${(rota.distance/1000).toFixed(1)}km\n\n` + nomes.map((n, idx) => `${idx+1}. ${n}`).join("\n");
+
+                const card = document.createElement("div");
+                card.className = "rota-card";
+                card.style.borderLeftColor = cor;
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+                        <strong style="color:var(--primary)">ROTA ${i+1}</strong>
+                        <div style="display:flex; gap:10px">
+                            <button onclick="copiar('${textoCopia}')" class="btn-acao"><i class="fas fa-copy"></i></button>
+                            <a href="${urlGoogle}" target="_blank" class="btn-acao" style="background:var(--primary); color:white"><i class="fas fa-location-arrow"></i></a>
+                        </div>
+                    </div>
+                    <ul style="margin:0; padding-left:18px; font-size:13px; color:#444">${listaLi}</ul>
+                `;
+                document.getElementById("container-rotas").appendChild(card);
+
+                if (rota.geometry) {
+                    const poly = L.polyline(decodePolyline(rota.geometry), {color: cor, weight: 6, opacity: 0.8}).addTo(map);
+                    linhasRotas.push(poly);
+                }
+            });
+            if (linhasRotas.length) map.fitBounds(new L.featureGroup(linhasRotas).getBounds());
+            if (document.getElementById("panel").classList.contains("open")) togglePanel();
+        } catch (err) { alert("Erro ao calcular rotas."); } 
+        finally { fab.innerHTML = '<i class="fas fa-directions"></i>'; }
+    }
+
+    function copiar(texto) {
+        navigator.clipboard.writeText(texto);
+        const t = document.getElementById("toast");
+        t.style.display = "block";
+        setTimeout(() => t.style.display = "none", 2000);
+    }
+
+    function decodePolyline(str) {
+        let index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null, lat_change, lng_change;
+        while (index < str.length) {
+            byte = null; shift = 0; result = 0;
+            do { byte = str.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
+            lat_change = ((result & 1) ? ~(result >> 1) : (result >> 1)); lat += lat_change;
+            byte = null; shift = 0; result = 0;
+            do { byte = str.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
+            lng_change = ((result & 1) ? ~(result >> 1) : (result >> 1)); lng += lng_change;
+            coordinates.push([lat / 100000, lng / 100000]);
+        }
+        return coordinates;
+    }
+
+    document.getElementById("busca").addEventListener("input", function(e) {
+        const termo = e.target.value.toLowerCase();
+        const res = document.getElementById("resultados-busca");
+        if(termo.length < 2) { res.classList.remove("active"); return; }
+        res.innerHTML = "";
+        escolas.filter(esc => esc.nome.toLowerCase().includes(termo)).forEach(esc => {
+            const item = document.createElement("div");
+            item.style = "padding:15px; border-bottom:1px solid #eee; cursor:pointer; font-size:14px";
+            item.textContent = esc.nome;
+            item.onclick = () => { 
+                map.flyTo([esc.lat, esc.lng], 16);
+                alternarEscola(esc); 
+                res.classList.remove("active");
+                toggleSearch();
+            };
+            res.appendChild(item);
+        });
+        res.classList.add("active");
+    });
 </script>
 </body>
 </html>
