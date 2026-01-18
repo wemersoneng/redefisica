@@ -1,77 +1,78 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<title>Roteirização de Vistorias</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <title>Roteirização de Vistorias</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<style>
-  body { margin:0; font-family: Arial, Helvetica, sans-serif; }
-  #topo { padding:10px; background:#1f4fd8; color:white; font-size:16px; }
-  #contador { font-size:14px; opacity:0.9; }
-  #map { height:50vh; }
-  #painel { padding:10px; max-height:50vh; overflow-y:auto; background:#f5f5f5; }
-  input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0; font-size:14px; }
-  .resultado-busca, .escola-item, .rota-item { display:flex; align-items:center; justify-content:space-between; padding:6px; margin-bottom:4px; background:white; border-radius:4px; font-size:14px; }
-  .resultado-busca label { flex:1; margin-left:6px; cursor:pointer; }
-  .escola-item button { background:#d9534f; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
-  .escola-item span { cursor:pointer; }
-  .rota-item { flex-direction:column; background:#e3e3e3; padding:8px; margin-bottom:8px; }
-  .rota-item span { font-weight:bold; margin-bottom:4px; }
-</style>
+    <style>
+        body { margin:0; font-family: Arial, Helvetica, sans-serif; }
+        #topo { padding:10px; background:#1f4fd8; color:white; font-size:16px; }
+        #contador { font-size:14px; opacity:0.9; }
+        #map { height:50vh; width: 100%; background: #eee; }
+        #painel { padding:10px; max-height:50vh; overflow-y:auto; background:#f5f5f5; }
+        input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0; font-size:14px; box-sizing: border-box; }
+        .resultado-busca, .escola-item, .rota-item { display:flex; align-items:center; justify-content:space-between; padding:6px; margin-bottom:4px; background:white; border-radius:4px; font-size:14px; }
+        .resultado-busca label { flex:1; margin-left:6px; cursor:pointer; }
+        .escola-item button { background:#d9534f; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
+        .escola-item span { cursor:pointer; }
+        .rota-item { flex-direction:column; align-items: flex-start; background:#e3e3e3; padding:8px; margin-bottom:8px; border-left: 5px solid #1f4fd8; }
+        .rota-item span { font-weight:bold; margin-bottom:4px; }
+        button#gerar-rotas { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    </style>
 </head>
 <body>
 
 <div id="topo">
-  <strong>
-    Roteirização de Vistorias<br>
-    <span id="contador">0 escolas selecionadas</span>
-  </strong>
+    <strong>
+        Roteirização de Vistorias<br>
+        <span id="contador">0 escolas selecionadas</span>
+    </strong>
 </div>
 
 <div id="map"></div>
 
 <div id="painel">
-  <strong>Buscar escola</strong>
-  <input type="text" id="busca" placeholder="Digite parte do nome da escola">
-  <div id="resultados-busca"></div>
+    <strong>Buscar escola</strong>
+    <input type="text" id="busca" placeholder="Digite parte do nome da escola">
+    <div id="resultados-busca"></div>
 
-  <hr>
-  <strong>Escolas selecionadas</strong>
-  <div id="lista-escolas"><em>Nenhuma escola selecionada.</em></div>
+    <hr>
+    <strong>Escolas selecionadas</strong>
+    <div id="lista-escolas"><em>Nenhuma escola selecionada.</em></div>
 
-  <hr>
-  <strong>Parâmetros da operação</strong>
-  <label>Número de rotas:</label>
-  <input type="number" id="num-rotas" min="1" value="2">
-  <label>Máximo de escolas por rota:</label>
-  <input type="number" id="max-escolas" min="1" value="5">
-  <button id="gerar-rotas">Gerar Rotas</button>
+    <hr>
+    <strong>Parâmetros da operação</strong>
+    <label>Número de rotas (Veículos):</label>
+    <input type="number" id="num-rotas" min="1" value="2">
+    <label>Máximo de escolas por rota:</label>
+    <input type="number" id="max-escolas" min="1" value="5">
+    <button id="gerar-rotas">Gerar Rotas</button>
 
-  <hr>
-  <strong>Rotas geradas</strong>
-  <div id="rotas-geradas"></div>
+    <hr>
+    <strong>Rotas geradas</strong>
+    <div id="rotas-geradas"></div>
 </div>
 
 <script>
 const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
 const escolas = [
-  { id:1, nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat:-7.22591062068273, lng:-39.29902763710780 },
-  { id:2, nome: "HELENA VIEIRA DOS SANTOS EMEI", lat:-7.21989883926041, lng:-39.33797808195100 },
-  { id:3, nome: "IRMÃ ANA TEREZINHA EMEI", lat:-7.20154173144659, lng:-39.27063735387350 },
-  { id:4, nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat:-7.22819953348265, lng:-39.34014211541830 },
-  { id:5, nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat:-7.23045717488514, lng:-39.32037563243490 },
-  { id:6, nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat:-7.23370145013908, lng:-39.30402430844510 }
+    { id:1, nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat:-7.22591062068273, lng:-39.29902763710780 },
+    { id:2, nome: "HELENA VIEIRA DOS SANTOS EMEI", lat:-7.21989883926041, lng:-39.33797808195100 },
+    { id:3, nome: "IRMÃ ANA TEREZINHA EMEI", lat:-7.20154173144659, lng:-39.27063735387350 },
+    { id:4, nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat:-7.22819953348265, lng:-39.34014211541830 },
+    { id:5, nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat:-7.23045717488514, lng:-39.32037563243490 },
+    { id:6, nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat:-7.23370145013908, lng:-39.30402430844510 }
 ];
 
-const escolasSelecionadas = [];
+let escolasSelecionadas = [];
 const marcadores = {};
-const linhasRotas = [];
+let linhasRotas = [];
 
+// Inicialização do Mapa
 const map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
@@ -79,107 +80,181 @@ const iconeEscola = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/image
 const iconeSelecionado = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
 const iconeSEINFRA = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[22,36], iconAnchor:[11,36] });
 
-L.marker([pontoPartida.lat, pontoPartida.lng], {icon:iconeSEINFRA}).addTo(map).bindPopup("SEINFRA");
+L.marker([pontoPartida.lat, pontoPartida.lng], {icon:iconeSEINFRA}).addTo(map).bindPopup("SEINFRA (Partida)");
 
-escolas.forEach(e=>{
-  const m=L.marker([e.lat,e.lng],{icon:iconeEscola}).addTo(map);
-  m.selecionado=false;
-  m.on("click",()=>alternarEscola(e,true));
-  marcadores[e.nome]=m;
+escolas.forEach(e => {
+    const m = L.marker([e.lat, e.lng], {icon:iconeEscola}).addTo(map);
+    m.selecionado = false;
+    m.on("click", () => alternarEscola(e, true));
+    marcadores[e.nome] = m;
 });
 
-function alternarEscola(e,zoom=false){
-  const m=marcadores[e.nome];
-  if(!m.selecionado){ m.selecionado=true; escolasSelecionadas.push(e); m.setIcon(iconeSelecionado);}
-  else{ removerEscola(e.nome); return; }
-  if(zoom) map.setView([e.lat,e.lng],16);
-  atualizarUI(); atualizarBusca();
+function alternarEscola(e, zoom=false) {
+    const m = marcadores[e.nome];
+    if(!m.selecionado) { 
+        m.selecionado = true; 
+        escolasSelecionadas.push(e); 
+        m.setIcon(iconeSelecionado);
+    } else { 
+        removerEscola(e.nome); 
+        return; 
+    }
+    if(zoom) map.setView([e.lat, e.lng], 16);
+    atualizarUI(); 
+    atualizarBusca();
 }
 
-function removerEscola(nome){
-  const idx=escolasSelecionadas.findIndex(e=>e.nome===nome);
-  if(idx!=-1) escolasSelecionadas.splice(idx,1);
-  const m=marcadores[nome]; m.selecionado=false; m.setIcon(iconeEscola);
-  atualizarUI(); atualizarBusca();
+function removerEscola(nome) {
+    const idx = escolasSelecionadas.findIndex(e => e.nome === nome);
+    if(idx !== -1) escolasSelecionadas.splice(idx, 1);
+    const m = marcadores[nome]; 
+    m.selecionado = false; 
+    m.setIcon(iconeEscola);
+    atualizarUI(); 
+    atualizarBusca();
 }
 
-function atualizarUI(){
-  document.getElementById("contador").textContent=`${escolasSelecionadas.length} escolas selecionadas`;
-  const lista=document.getElementById("lista-escolas"); lista.innerHTML="";
-  if(escolasSelecionadas.length==0){ lista.innerHTML="<em>Nenhuma escola selecionada.</em>"; return; }
-  escolasSelecionadas.forEach(e=>{
-    const div=document.createElement("div"); div.className="escola-item";
-    const nome=document.createElement("span"); nome.textContent=e.nome; nome.onclick=()=>map.setView([e.lat,e.lng],16);
-    const btn=document.createElement("button"); btn.textContent="Remover"; btn.onclick=()=>removerEscola(e.nome);
-    div.appendChild(nome); div.appendChild(btn); lista.appendChild(div);
-  });
+function atualizarUI() {
+    document.getElementById("contador").textContent = `${escolasSelecionadas.length} escolas selecionadas`;
+    const lista = document.getElementById("lista-escolas"); 
+    lista.innerHTML = "";
+    if(escolasSelecionadas.length === 0) { 
+        lista.innerHTML = "<em>Nenhuma escola selecionada.</em>"; 
+        return; 
+    }
+    escolasSelecionadas.forEach(e => {
+        const div = document.createElement("div"); div.className = "escola-item";
+        const nome = document.createElement("span"); nome.textContent = e.nome; nome.onclick = () => map.setView([e.lat, e.lng], 16);
+        const btn = document.createElement("button"); btn.textContent = "Remover"; btn.onclick = () => removerEscola(e.nome);
+        div.appendChild(nome); div.appendChild(btn); lista.appendChild(div);
+    });
 }
 
-function atualizarBusca(){
-  const termo=document.getElementById("busca").value.toLowerCase();
-  const resultados=document.getElementById("resultados-busca"); resultados.innerHTML="";
-  if(termo.length<2) return;
-  escolas.filter(e=>e.nome.toLowerCase().includes(termo)).forEach(e=>{
-    const div=document.createElement("div"); div.className="resultado-busca";
-    const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=marcadores[e.nome].selecionado;
-    cb.onchange=()=>alternarEscola(e,true);
-    const label=document.createElement("label"); label.textContent=e.nome;
-    div.appendChild(cb); div.appendChild(label); resultados.appendChild(div);
-  });
+function atualizarBusca() {
+    const termo = document.getElementById("busca").value.toLowerCase();
+    const resultados = document.getElementById("resultados-busca"); 
+    resultados.innerHTML = "";
+    if(termo.length < 2) return;
+    escolas.filter(e => e.nome.toLowerCase().includes(termo)).forEach(e => {
+        const div = document.createElement("div"); div.className = "resultado-busca";
+        const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = marcadores[e.nome].selecionado;
+        cb.onchange = () => alternarEscola(e, true);
+        const label = document.createElement("label"); label.textContent = e.nome;
+        div.appendChild(cb); div.appendChild(label); resultados.appendChild(div);
+    });
 }
 document.getElementById("busca").addEventListener("input", atualizarBusca);
 
-// ========================= ROTAS =========================
-async function gerarRotas(){
-  if(linhasRotas.length>0){ linhasRotas.forEach(l=>map.removeLayer(l)); linhasRotas.length=0; }
+// ========================= LÓGICA DE GERAÇÃO DE ROTAS =========================
+async function gerarRotas() {
+    // Limpa desenhos anteriores
+    if(linhasRotas.length > 0) { 
+        linhasRotas.forEach(l => map.removeLayer(l)); 
+        linhasRotas.length = 0; 
+    }
 
-  const nRotas=parseInt(document.getElementById("num-rotas").value);
-  const maxEscolas=parseInt(document.getElementById("max-escolas").value);
-  if(escolasSelecionadas.length===0){ alert("Selecione ao menos uma escola"); return; }
-
-  try{
-    const resp = await fetch("https://redefisica.onrender.com/rotas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jobs, vehicles })
-});
+    const nRotas = parseInt(document.getElementById("num-rotas").value);
+    const maxEscolas = parseInt(document.getElementById("max-escolas").value);
     
-    });
-    const data = await resp.json();
-    if(data.error){ alert("Erro na API: "+data.error); return; }
+    if(escolasSelecionadas.length === 0) { 
+        alert("Selecione ao menos uma escola"); 
+        return; 
+    }
 
-    // Limpa rotas antigas
-    const container=document.getElementById("rotas-geradas"); container.innerHTML="";
+    // Prepara dados para a API (Formato OpenRouteService Optimization)
+    const jobs = escolasSelecionadas.map(e => ({
+        id: e.id,
+        location: [e.lng, e.lat],
+        amount: [1]
+    }));
 
-    data.routes.forEach((rota,i)=>{
-      const rotaElement = document.createElement("div"); rotaElement.className="rota-item";
+    const vehicles = [];
+    for (let i = 0; i < nRotas; i++) {
+        vehicles.push({
+            id: i,
+            profile: "driving-car",
+            start: [pontoPartida.lng, pontoPartida.lat],
+            end: [pontoPartida.lng, pontoPartida.lat],
+            capacity: [maxEscolas]
+        });
+    }
 
-      // Pega só as steps do tipo job
-      const schoolsNaRota = rota.steps.filter(s=>s.type==="job").map(s=>{
-        return escolasSelecionadas.find(e=>e.id===s.job_id);
-      });
+    try {
+        const btn = document.getElementById("gerar-rotas");
+        btn.disabled = true;
+        btn.textContent = "Calculando...";
 
-      // Distância total
-      const totalKm = rota.distance/1000;
+        const resp = await fetch("https://redefisica.onrender.com/rotas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ jobs, vehicles })
+        });
 
-      rotaElement.innerHTML=`<span>Rota ${i+1} — Estimativa: ${totalKm.toFixed(2)} km</span>`;
+        const data = await resp.json();
+        btn.disabled = false;
+        btn.textContent = "Gerar Rotas";
 
-      schoolsNaRota.forEach(e=>{
-        const s=document.createElement("span"); s.textContent=e.nome; rotaElement.appendChild(s);
-      });
+        if(data.error) { 
+            alert("Erro na API: " + (data.error.message || data.error)); 
+            return; 
+        }
 
-      // Desenha rota no mapa
-      const coords = rota.steps.map(s=>[s.location[1], s.location[0]]); // [lat,lng]
-      const poly = L.polyline(coords, {color: `hsl(${i*60}, 70%, 50%)`, weight:4}).addTo(map);
-      linhasRotas.push(poly);
+        const container = document.getElementById("rotas-geradas"); 
+        container.innerHTML = "";
 
-      container.appendChild(rotaElement);
-    });
+        if (!data.routes || data.routes.length === 0) {
+            alert("Não foi possível encontrar uma rota viável.");
+            return;
+        }
 
-  }catch(err){
-    console.error(err);
-    alert("Erro na comunicação com a API");
-  }
+        data.routes.forEach((rota, i) => {
+            const rotaElement = document.createElement("div"); 
+            rotaElement.className = "rota-item";
+
+            // Filtra os pontos que são escolas
+            const schoolsInRoute = rota.steps
+                .filter(s => s.type === "job")
+                .map(s => escolasSelecionadas.find(e => e.id === s.job_id));
+
+            const totalKm = (rota.distance / 1000).toFixed(2);
+            const cor = `hsl(${(i * 140) % 360}, 70%, 50%)`;
+
+            rotaElement.style.borderLeftColor = cor;
+            rotaElement.innerHTML = `<span>Rota ${i + 1} (${totalKm} km)</span>`;
+
+            schoolsInRoute.forEach(e => {
+                if(e) {
+                    const s = document.createElement("small");
+                    s.style.display = "block";
+                    s.textContent = "• " + e.nome;
+                    rotaElement.appendChild(s);
+                }
+            });
+
+            // Desenha a linha no mapa se houver geometria
+            if (rota.geometry) {
+                // O ORS retorna geometria codificada ou coordenadas. 
+                // Assumindo que o server retorna as coordenadas em steps:
+                const coords = rota.steps.map(s => [s.location[1], s.location[0]]);
+                const poly = L.polyline(coords, {color: cor, weight: 5, opacity: 0.7}).addTo(map);
+                linhasRotas.push(poly);
+            }
+
+            container.appendChild(rotaElement);
+        });
+
+        // Ajusta o mapa para ver tudo
+        if(linhasRotas.length > 0) {
+            const group = new L.featureGroup(linhasRotas);
+            map.fitBounds(group.getBounds());
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Erro na comunicação com o servidor. Verifique se o Render está online.");
+        document.getElementById("gerar-rotas").disabled = false;
+        document.getElementById("gerar-rotas").textContent = "Gerar Rotas";
+    }
 }
 
 document.getElementById("gerar-rotas").addEventListener("click", gerarRotas);
