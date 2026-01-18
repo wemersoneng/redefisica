@@ -1,35 +1,34 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Roteirização de Vistorias</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Roteirização de Vistorias — ORS Optimization</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <style>
-    body { margin:0; font-family: Arial, Helvetica, sans-serif; }
-    #topo { padding:10px; background:#1f4fd8; color:white; font-size:16px; }
-    #contador { font-size:14px; opacity:0.9; }
-    #map { height:50vh; }
-    #painel { padding:10px; max-height:50vh; overflow-y:auto; background:#f5f5f5; }
-    input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0; font-size:14px; }
-    .resultado-busca, .escola-item, .rota-item { display:flex; align-items:center; justify-content:space-between; padding:6px; margin-bottom:4px; background:white; border-radius:4px; font-size:14px; }
-    .resultado-busca label { flex:1; margin-left:6px; cursor:pointer; }
-    .escola-item button { background:#d9534f; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
-    .escola-item span { cursor:pointer; }
-    .rota-item { flex-direction:column; background:#e3e3e3; padding:8px; }
-    .rota-item span { font-weight:bold; margin-bottom:4px; }
-    .rota-item a { display:inline-block; margin-top:6px; color:white; background:#1f4fd8; padding:4px 8px; border-radius:4px; text-decoration:none; }
-  </style>
+<style>
+  body { margin:0; font-family: Arial, Helvetica, sans-serif; }
+  #topo { padding:10px; background:#1f4fd8; color:white; font-size:16px; }
+  #contador { font-size:14px; opacity:0.9; }
+  #map { height:50vh; }
+  #painel { padding:10px; max-height:50vh; overflow-y:auto; background:#f5f5f5; }
+  input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0; font-size:14px; }
+  .resultado-busca, .escola-item, .rota-item { display:flex; align-items:center; justify-content:space-between; padding:6px; margin-bottom:4px; background:white; border-radius:4px; font-size:14px; }
+  .resultado-busca label { flex:1; margin-left:6px; cursor:pointer; }
+  .escola-item button { background:#d9534f; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
+  .escola-item span { cursor:pointer; }
+  .rota-item { flex-direction:column; background:#e3e3e3; padding:8px; }
+  .rota-item span { font-weight:bold; margin-bottom:4px; }
+</style>
 </head>
 <body>
 
 <div id="topo">
   <strong>
-    Rotas - REDE FÍSICA<br>
+    Roteirização de Vistorias — Educação<br>
     <span id="contador">0 escolas selecionadas</span>
   </strong>
 </div>
@@ -59,7 +58,7 @@
 </div>
 
 <script>
-const ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImMwNzA3NmE4OGU1ZjQwNTRhNTI4M2ZkNzlmMTY4Y2Y2IiwiaCI6Im11cm11cjY0In0=";
+const API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImMwNzA3NmE4OGU1ZjQwNTRhNTI4M2ZkNzlmMTY4Y2Y2IiwiaCI6Im11cm11cjY0In0="; // <-- Substitua pela sua chave ORS
 const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
 
 const escolas = [
@@ -87,7 +86,7 @@ const escolas = [
 
 const escolasSelecionadas = [];
 const marcadores = {};
-let polylines = [];
+const coresRotas = ["#1f4fd8","#28a745","#ff9800","#9c27b0","#e91e63"];
 
 // ========================= MAPA =========================
 const map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
@@ -100,10 +99,10 @@ const iconeSEINFRA = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi
 L.marker([pontoPartida.lat, pontoPartida.lng], {icon:iconeSEINFRA}).addTo(map).bindPopup("SEINFRA");
 
 escolas.forEach(e=>{
-  const m = L.marker([e.lat,e.lng], {icon:iconeEscola}).addTo(map);
-  m.selecionado = false;
+  const m=L.marker([e.lat,e.lng],{icon:iconeEscola}).addTo(map);
+  m.selecionado=false;
   m.on("click",()=>alternarEscola(e,true));
-  marcadores[e.nome] = m;
+  marcadores[e.nome]=m;
 });
 
 // ========================= FUNÇÕES =========================
@@ -149,126 +148,92 @@ function atualizarBusca(){
 
 document.getElementById("busca").addEventListener("input", atualizarBusca);
 
-// ========================= MATRIZ ORS =========================
-async function obterMatrizDistancias(pontos) {
-  const locations = pontos.map(p => [p.lng, p.lat]);
-  const body = { locations, metrics:["distance"], units:"km" };
-  try {
-    const res = await fetch("https://api.openrouteservice.org/v2/matrix/driving-car", {
-      method:"POST",
-      headers: { "Authorization": ORS_API_KEY, "Content-Type":"application/json" },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    return data.distances;
-  } catch(err) { console.error("Erro ORS:", err); return null; }
-}
-
-// ========================= GERAR ROTAS =========================
-document.getElementById("gerar-rotas").addEventListener("click", async ()=>{
-  if(escolasSelecionadas.length==0){ alert("Selecione ao menos uma escola"); return; }
+// ========================= GERAR ROTAS VIA ORS =========================
+async function gerarRotas(){
   const nRotas=parseInt(document.getElementById("num-rotas").value);
   const maxEscolas=parseInt(document.getElementById("max-escolas").value);
+  if(escolasSelecionadas.length==0){ alert("Selecione ao menos uma escola"); return; }
 
-  const pontos=[pontoPartida, ...escolasSelecionadas];
-  const matriz = await obterMatrizDistancias(pontos);
-  if(!matriz){ alert("Erro ao gerar matriz de distâncias ORS"); return; }
+  // Preparar dados para ORS Optimization
+  const jobs = escolasSelecionadas.map((e,i)=>({id:i+1, location:[e.lng, e.lat], name:e.nome}));
+  const vehicles = Array.from({length:nRotas}, (_,i)=>({id:i+1, start:[pontoPartida.lng,pontoPartida.lat], capacity:[maxEscolas]}));
 
-  // ===== Distribuição gulosa usando matriz de distâncias reais =====
-  const rotas = Array.from({length:nRotas},()=>[]);
-  let restantes = escolasSelecionadas.map((e,i)=>i+1); // índice na matriz (0 = pontoPartida)
-  const seeds = [];
+  const payload = {jobs, vehicles};
 
-  // 1️⃣ Escolher seeds (escolas mais distantes)
-  for(let i=0;i<nRotas;i++){
-    if(restantes.length==0) break;
-    let seedIdx;
-    if(i==0){
-      seedIdx = restantes.reduce((a,b)=>matriz[0][a]>matriz[0][b]?a:b);
-    } else {
-      seedIdx = restantes.reduce((a,b)=>{
-        const dA = Math.min(...seeds.map(s=>matriz[s][a]), matriz[0][a]);
-        const dB = Math.min(...seeds.map(s=>matriz[s][b]), matriz[0][b]);
-        return dA>dB?a:b;
-      });
-    }
-    seeds.push(seedIdx);
-    rotas[i].push(seedIdx);
-    restantes = restantes.filter(x=>x!==seedIdx);
-  }
+  try{
+    const res = await fetch("https://api.openrouteservice.org/optimization",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization": API_KEY
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
 
-  // 2️⃣ Distribuição gulosa por distância
-  let round=true;
-  while(restantes.length>0 && round){
-    round=false;
-    for(let i=0;i<nRotas;i++){
-      if(restantes.length==0) break;
-      if(rotas[i].length>=maxEscolas) continue;
-      const seed = rotas[i][0];
-      let closest = restantes.reduce((a,b)=>matriz[seed][a]<matriz[seed][b]?a:b);
-      rotas[i].push(closest);
-      restantes = restantes.filter(x=>x!==closest);
-      round=true;
-    }
-  }
+    if(!data.routes){ alert("Erro na geração das rotas"); console.log(data); return; }
 
-  // 3️⃣ Sequenciamento simples TSP dentro da rota
-  const rotasSequenciadas = rotas.map(r=>{
-    if(r.length<=1) return r;
-    const ordered = [r[0]];
-    let toOrder = r.slice(1);
-    let last = r[0];
-    while(toOrder.length>0){
-      let nextIdx=0, nextDist=matriz[last][toOrder[0]];
-      for(let i=1;i<toOrder.length;i++){
-        if(matriz[last][toOrder[i]]<nextDist){ nextIdx=i; nextDist=matriz[last][toOrder[i]]; }
-      }
-      last=toOrder[nextIdx];
-      ordered.push(last);
-      toOrder.splice(nextIdx,1);
-    }
-    return ordered;
-  });
-
-  // ===== Mostrar no painel =====
-  const container=document.getElementById("rotas-geradas");
-  container.innerHTML="";
-  polylines.forEach(p=>map.removeLayer(p)); // limpa rotas anteriores
-  polylines = [];
-
-  rotasSequenciadas.forEach((r,i)=>{
-    const div=document.createElement("div"); div.className="rota-item";
-
-    // Distância total
-    let totalKm=0;
-    for(let j=0;j<r.length;j++){
-      if(j==0) totalKm+=matriz[0][r[j]];
-      else totalKm+=matriz[r[j-1]][r[j]];
-    }
-    totalKm+=matriz[r[r.length-1]][0];
-
-    div.innerHTML=`<span>Rota ${i+1} — Estimativa: ${totalKm.toFixed(2)} km</span>`;
-
-    // Lista escolas
-    r.forEach(idx=>{
-      const s = document.createElement("span"); s.textContent=pontos[idx].nome; div.appendChild(s);
+    // Limpar rotas antigas
+    document.getElementById("rotas-geradas").innerHTML="";
+    map.eachLayer(l=>{
+      if(l.options && l.options.color) map.removeLayer(l);
     });
 
-    // Link Google Maps
-    let link = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}`;
-    r.forEach(idx=>{ link += `/${pontos[idx].lat},${pontos[idx].lng}`; });
-    link += `/${pontoPartida.lat},${pontoPartida.lng}`;
-    const btn=document.createElement("a"); btn.href=link; btn.target="_blank"; btn.textContent="Abrir rota no Maps";
-    div.appendChild(btn);
+    // Desenhar rotas e mostrar detalhes
+    data.routes.forEach((route,idx)=>{
+      const div = document.createElement("div");
+      div.className="rota-item";
+      const color = coresRotas[idx % coresRotas.length];
 
-    container.appendChild(div);
+      // Distância total
+      const distKm = (route.summary.distance/1000).toFixed(2);
+      div.innerHTML=`<span>Rota ${idx+1} — Distância: ${distKm} km</span>`;
 
-    // Traçar rota no mapa
-    const coords = [ [pontoPartida.lat,pontoPartida.lng], ...r.map(idx=>[pontos[idx].lat,pontos[idx].lng]), [pontoPartida.lat,pontoPartida.lng] ];
-    const poly = L.polyline(coords,{color:["red","blue","green","orange","purple"][i%5],weight:4}).addTo(map);
-    polylines.push(poly);
-  });
-});
+      // Lista escolas
+      route.steps.forEach(s=>{
+        if(s.type==="job"){
+          const escola = jobs.find(j=>j.id===s.job);
+          const sp = document.createElement("span");
+          sp.textContent = escola.name;
+          div.appendChild(sp);
+        }
+      });
+
+      // GeoJSON da rota
+      const geo = L.geoJSON(route.geometry, {color: color, weight:4}).addTo(map);
+
+      // Link Google Maps
+      let link = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}`;
+      route.steps.forEach(s=>{
+        if(s.type==="job"){
+          const escola = jobs.find(j=>j.id===s.job);
+          link += `/${escola.lat},${escola.lng}`;
+        }
+      });
+      link += `/${pontoPartida.lat},${pontoPartida.lng}`;
+      const btn = document.createElement("a");
+      btn.href = link;
+      btn.target="_blank";
+      btn.textContent = "Abrir rota no Maps";
+      btn.style.display="inline-block";
+      btn.style.marginTop="6px";
+      btn.style.color="white";
+      btn.style.background=color;
+      btn.style.padding="4px 8px";
+      btn.style.borderRadius="4px";
+      div.appendChild(btn);
+
+      document.getElementById("rotas-geradas").appendChild(div);
+    });
+
+  }catch(err){
+    console.error(err);
+    alert("Erro ao chamar a API ORS");
+  }
+}
+
+document.getElementById("gerar-rotas").addEventListener("click", gerarRotas);
 </script>
+
 </body>
 </html>
