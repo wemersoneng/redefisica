@@ -24,12 +24,11 @@
     .rota-item span { font-weight:bold; margin-bottom:4px; }
   </style>
 </head>
-
 <body>
 
 <div id="topo">
   <strong>
-    Roteirização de Vistorias — Educação<br>
+    Roteirização de Vistorias — SEDUC<br>
     <span id="contador">0 escolas selecionadas</span>
   </strong>
 </div>
@@ -61,58 +60,16 @@
 <script>
 const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
 
-const escolas = [
-  { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
-  { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
-  { nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.27063735387350 },
-  { nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.34014211541830 },
-  { nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.32037563243490 },
-  { nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.30402430844510 },
-  { nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.31205352283060 },
-  { nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.33808108252610 },
-  { nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.28818071378180 },
-  { nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.22127336881870, lng: -39.30495688808320 }
-];
-
+let escolas = []; // será carregado do JSON externo
 const escolasSelecionadas = [];
 const marcadores = {};
-let rotaLayers = [];
+let map;
 
-const map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-
-const iconeEscola = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
-const iconeSelecionado = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
-const iconeSEINFRA = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[22,36], iconAnchor:[11,36] });
-
-L.marker([pontoPartida.lat, pontoPartida.lng], {icon:iconeSEINFRA}).addTo(map).bindPopup("SEINFRA");
-
-escolas.forEach(e=>{
-  const m=L.marker([e.lat,e.lng],{icon:iconeEscola}).addTo(map);
-  m.selecionado=false;
-  m.on("click",()=> alternarEscola(e,true));
-  marcadores[e.nome]=m;
-});
-
-function distanciaKm(a,b){
+// ========================= FUNÇÕES DE DISTÂNCIA E UI =========================
+function distanciaKm(a,b){ 
   const R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
-  const c=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  const c=Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
   return 2*R*Math.atan2(Math.sqrt(c),Math.sqrt(1-c));
-}
-
-function alternarEscola(e,zoom=false){
-  const m=marcadores[e.nome];
-  if(!m.selecionado){ m.selecionado=true; m.setIcon(iconeSelecionado); escolasSelecionadas.push(e);}
-  else { removerEscola(e.nome); return; }
-  if(zoom) map.setView([e.lat,e.lng],16);
-  atualizarUI(); atualizarBusca();
-}
-
-function removerEscola(nome){
-  const idx=escolasSelecionadas.findIndex(e=>e.nome===nome);
-  if(idx!=-1) escolasSelecionadas.splice(idx,1);
-  const m=marcadores[nome]; m.selecionado=false; m.setIcon(iconeEscola);
-  atualizarUI(); atualizarBusca();
 }
 
 function atualizarUI(){
@@ -140,71 +97,68 @@ function atualizarBusca(){
   });
 }
 
-async function gerarRotas(){
-  if(escolasSelecionadas.length==0){ alert("Selecione ao menos uma escola"); return; }
-  const nRotas=parseInt(document.getElementById("num-rotas").value);
-  const maxEscolas=parseInt(document.getElementById("max-escolas").value);
+function alternarEscola(e,zoom=false){
+  const m=marcadores[e.nome];
+  if(!m.selecionado){ m.selecionado=true; m.setIcon(iconeSelecionado); escolasSelecionadas.push(e); }
+  else{ removerEscola(e.nome); return; }
+  if(zoom) map.setView([e.lat,e.lng],16);
+  atualizarUI(); atualizarBusca();
+}
 
-  // limpa rotas anteriores
-  rotaLayers.forEach(l=>map.removeLayer(l));
-  rotaLayers=[];
+function removerEscola(nome){
+  const idx=escolasSelecionadas.findIndex(e=>e.nome===nome);
+  if(idx!=-1) escolasSelecionadas.splice(idx,1);
+  const m=marcadores[nome]; m.selecionado=false; m.setIcon(iconeEscola);
+  atualizarUI(); atualizarBusca();
+}
 
-  // Monta jobs e veículos
-  const jobs = escolasSelecionadas.map((e,i)=>({id:i+1, location:[e.lng,e.lat], name:e.nome, service:0}));
-  const vehicles = Array.from({length:nRotas},(_,i)=>({id:i+1,start:[pontoPartida.lng,pontoPartida.lat],end:[pontoPartida.lng,pontoPartida.lat],capacity:[maxEscolas]}));
+// ========================= INICIALIZAÇÃO DO MAPA =========================
+async function inicializarMapa(){
+  map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
-  try{
-    const resp = await fetch("https://redefisica.onrender.com/rotas", { // coloque o URL do backend
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({jobs,vehicles})
-    });
-    const data = await resp.json();
-    if(data.error){ alert("Erro na API: "+JSON.stringify(data.error)); return; }
+  // ícones
+  window.iconeEscola = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
+  window.iconeSelecionado = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
+  const iconeSEINFRA = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[22,36], iconAnchor:[11,36] });
 
-    const container=document.getElementById("rotas-geradas");
-    container.innerHTML="";
+  L.marker([pontoPartida.lat, pontoPartida.lng], {icon:iconeSEINFRA}).addTo(map).bindPopup("SEINFRA");
 
-    // percorre rotas
-    data.routes.forEach((r,i)=>{
-      const div=document.createElement("div"); div.className="rota-item";
-      const coords = r.steps.map(s=>[s.location[1], s.location[0]]);
+  // marcadores das escolas
+  escolas.forEach(e=>{
+    const m = L.marker([e.lat,e.lng],{icon:iconeEscola}).addTo(map);
+    m.selecionado=false;
+    m.on("click",()=>alternarEscola(e,true));
+    marcadores[e.nome]=m;
+  });
+}
 
-      // highlight no mapa
-      const poly = L.polyline(coords, {color:["red","blue","green"][i%3], weight:4}).addTo(map);
-      rotaLayers.push(poly);
-
-      // calcula km
-      const totalKm = r.steps.reduce((acc,e,j)=>{
-        if(j==0) return acc+distanciaKm(pontoPartida,{lat:e.location[1],lng:e.location[0]});
-        return acc+distanciaKm({lat:r.steps[j-1].location[1],lng:r.steps[j-1].location[0]},{lat:e.location[1],lng:e.location[0]});
-      },0);
-      div.innerHTML=`<span>Rota ${i+1} — Estimativa: ${totalKm.toFixed(2)} km</span>`;
-
-      r.steps.forEach(s=>{
-        const sp=document.createElement("span"); sp.textContent=s.name; div.appendChild(sp);
-      });
-
-      // link Google Maps
-      let link = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}`;
-      r.steps.forEach(s=>{ link+=`/${s.location[1]},${s.location[0]}`; });
-      link+=`/${pontoPartida.lat},${pontoPartida.lng}`;
-      const btn = document.createElement("a"); btn.href=link; btn.target="_blank"; btn.textContent="Abrir rota no Maps";
-      btn.style.display="inline-block"; btn.style.marginTop="6px"; btn.style.color="white"; btn.style.background="#1f4fd8"; btn.style.padding="4px 8px"; btn.style.borderRadius="4px";
-      div.appendChild(btn);
-
-      container.appendChild(div);
-    });
-
-  } catch(err){
-    console.error(err);
-    alert("Erro na comunicação com o backend");
+// ========================= CARREGAR JSON =========================
+async function carregarEscolas(){
+  try {
+    const resp = await fetch("escolas.json");
+    escolas = await resp.json();
+    await inicializarMapa();
+  } catch(e){
+    console.error("Erro ao carregar escolas:", e);
+    alert("Não foi possível carregar a lista de escolas.");
   }
 }
 
-document.getElementById("gerar-rotas").addEventListener("click", gerarRotas);
-document.getElementById("busca").addEventListener("input", atualizarBusca);
-</script>
+carregarEscolas();
 
+// ========================= GERAR ROTAS =========================
+async function gerarRotas(){
+  const nRotas=parseInt(document.getElementById("num-rotas").value);
+  const maxEscolas=parseInt(document.getElementById("max-escolas").value);
+  if(escolasSelecionadas.length==0){ alert("Selecione ao menos uma escola"); return; }
+
+  // Aqui você pode chamar sua API ou manter a distribuição local
+  alert("Implementação de rotas ainda precisa ser chamada aqui");
+}
+
+document.getElementById("busca").addEventListener("input", atualizarBusca);
+document.getElementById("gerar-rotas").addEventListener("click", gerarRotas);
+</script>
 </body>
 </html>
