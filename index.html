@@ -4,11 +4,8 @@
   <meta charset="UTF-8" />
   <title>Roteirização de Vistorias</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <style>
     body { margin:0; font-family: Arial, Helvetica, sans-serif; }
     #topo { padding:10px; background:#1f4fd8; color:white; font-size:16px; }
@@ -22,13 +19,14 @@
     .escola-item span { cursor:pointer; }
     .rota-item { flex-direction:column; background:#e3e3e3; padding:8px; }
     .rota-item span { font-weight:bold; margin-bottom:4px; }
+    .rota-item a { display:inline-block; margin-top:6px; color:white; background:#1f4fd8; padding:4px 8px; border-radius:4px; text-decoration:none; }
   </style>
 </head>
 <body>
 
 <div id="topo">
   <strong>
-    Roteirização de Vistorias — SEDUC<br>
+    Roteirização de Vistorias — Educação<br>
     <span id="contador">0 escolas selecionadas</span>
   </strong>
 </div>
@@ -59,22 +57,58 @@
 
 <script>
 const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
-
-let escolas = []; // será carregado do JSON externo
+let escolas = [];
 const escolasSelecionadas = [];
 const marcadores = {};
-let map;
+let map, iconeEscola, iconeSelecionado, iconeSEINFRA;
 
-// ========================= FUNÇÕES DE DISTÂNCIA E UI =========================
-function distanciaKm(a,b){ 
-  const R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
-  const c=Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
-  return 2*R*Math.atan2(Math.sqrt(c),Math.sqrt(1-c));
+// ========================= Carrega escolas.json =========================
+fetch("./escolas.json")
+  .then(res => res.json())
+  .then(data => {
+    escolas = data;
+    initMap();
+  })
+  .catch(err => alert("Não foi possível carregar a lista de escolas"));
+
+// ========================= Inicializa mapa =========================
+function initMap(){
+  map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+  iconeEscola = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
+  iconeSelecionado = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
+  iconeSEINFRA = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[22,36], iconAnchor:[11,36] });
+
+  L.marker([pontoPartida.lat,pontoPartida.lng], {icon:iconeSEINFRA}).addTo(map).bindPopup("SEINFRA");
+
+  escolas.forEach(e=>{
+    const m = L.marker([e.lat,e.lng],{icon:iconeEscola}).addTo(map);
+    m.selecionado = false;
+    m.on("click",()=>alternarEscola(e,true));
+    marcadores[e.nome] = m;
+  });
+}
+
+// ========================= Funções de seleção =========================
+function alternarEscola(e,zoom=false){
+  const m=marcadores[e.nome];
+  if(!m.selecionado){ m.selecionado=true; m.setIcon(iconeSelecionado); escolasSelecionadas.push(e); }
+  else{ removerEscola(e.nome); return; }
+  if(zoom) map.setView([e.lat,e.lng],16);
+  atualizarUI(); atualizarBusca();
+}
+
+function removerEscola(nome){
+  const idx = escolasSelecionadas.findIndex(e=>e.nome===nome);
+  if(idx!=-1) escolasSelecionadas.splice(idx,1);
+  const m = marcadores[nome]; m.selecionado=false; m.setIcon(iconeEscola);
+  atualizarUI(); atualizarBusca();
 }
 
 function atualizarUI(){
-  document.getElementById("contador").textContent=`${escolasSelecionadas.length} escolas selecionadas`;
-  const lista=document.getElementById("lista-escolas"); lista.innerHTML="";
+  document.getElementById("contador").textContent = `${escolasSelecionadas.length} escolas selecionadas`;
+  const lista = document.getElementById("lista-escolas"); lista.innerHTML="";
   if(escolasSelecionadas.length==0){ lista.innerHTML="<em>Nenhuma escola selecionada.</em>"; return; }
   escolasSelecionadas.forEach(e=>{
     const div=document.createElement("div"); div.className="escola-item";
@@ -85,8 +119,8 @@ function atualizarUI(){
 }
 
 function atualizarBusca(){
-  const termo=document.getElementById("busca").value.toLowerCase();
-  const resultados=document.getElementById("resultados-busca"); resultados.innerHTML="";
+  const termo = document.getElementById("busca").value.toLowerCase();
+  const resultados = document.getElementById("resultados-busca"); resultados.innerHTML="";
   if(termo.length<2) return;
   escolas.filter(e=>e.nome.toLowerCase().includes(termo)).forEach(e=>{
     const div=document.createElement("div"); div.className="resultado-busca";
@@ -97,67 +131,86 @@ function atualizarBusca(){
   });
 }
 
-function alternarEscola(e,zoom=false){
-  const m=marcadores[e.nome];
-  if(!m.selecionado){ m.selecionado=true; m.setIcon(iconeSelecionado); escolasSelecionadas.push(e); }
-  else{ removerEscola(e.nome); return; }
-  if(zoom) map.setView([e.lat,e.lng],16);
-  atualizarUI(); atualizarBusca();
+document.getElementById("busca").addEventListener("input", atualizarBusca);
+
+// ========================= Gerar rotas simples (linha reta + link Google Maps) =========================
+function distanciaKm(a,b){
+  const R=6371,dLat=(b.lat-a.lat)*Math.PI/180,dLng=(b.lng-a.lng)*Math.PI/180;
+  const c=Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return 2*R*Math.atan2(Math.sqrt(c),Math.sqrt(1-c));
 }
 
-function removerEscola(nome){
-  const idx=escolasSelecionadas.findIndex(e=>e.nome===nome);
-  if(idx!=-1) escolasSelecionadas.splice(idx,1);
-  const m=marcadores[nome]; m.selecionado=false; m.setIcon(iconeEscola);
-  atualizarUI(); atualizarBusca();
-}
-
-// ========================= INICIALIZAÇÃO DO MAPA =========================
-async function inicializarMapa(){
-  map = L.map("map").setView([pontoPartida.lat, pontoPartida.lng], 13);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-
-  // ícones
-  window.iconeEscola = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
-  window.iconeSelecionado = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[20,32], iconAnchor:[10,32] });
-  const iconeSEINFRA = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", shadowUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png", iconSize:[22,36], iconAnchor:[11,36] });
-
-  L.marker([pontoPartida.lat, pontoPartida.lng], {icon:iconeSEINFRA}).addTo(map).bindPopup("SEINFRA");
-
-  // marcadores das escolas
-  escolas.forEach(e=>{
-    const m = L.marker([e.lat,e.lng],{icon:iconeEscola}).addTo(map);
-    m.selecionado=false;
-    m.on("click",()=>alternarEscola(e,true));
-    marcadores[e.nome]=m;
-  });
-}
-
-// ========================= CARREGAR JSON =========================
-async function carregarEscolas(){
-  try {
-    const resp = await fetch("escolas.json");
-    escolas = await resp.json();
-    await inicializarMapa();
-  } catch(e){
-    console.error("Erro ao carregar escolas:", e);
-    alert("Não foi possível carregar a lista de escolas.");
-  }
-}
-
-carregarEscolas();
-
-// ========================= GERAR ROTAS =========================
-async function gerarRotas(){
+function gerarRotas(){
   const nRotas=parseInt(document.getElementById("num-rotas").value);
   const maxEscolas=parseInt(document.getElementById("max-escolas").value);
   if(escolasSelecionadas.length==0){ alert("Selecione ao menos uma escola"); return; }
 
-  // Aqui você pode chamar sua API ou manter a distribuição local
-  alert("Implementação de rotas ainda precisa ser chamada aqui");
+  // 1️⃣ Escolher sementes
+  const rotas=Array.from({length:nRotas},()=>[]);
+  const seeds=[];
+  let restantes=[...escolasSelecionadas];
+  for(let i=0;i<nRotas;i++){
+    if(restantes.length==0) break;
+    let seed=null;
+    if(i==0) seed=restantes.reduce((a,b)=>distanciaKm(a,pontoPartida)>distanciaKm(b,pontoPartida)?a:b);
+    else seed=restantes.reduce((a,b)=>{
+      const dA=Math.min(...seeds.map(s=>distanciaKm(a,s)),distanciaKm(a,pontoPartida));
+      const dB=Math.min(...seeds.map(s=>distanciaKm(b,s)),distanciaKm(b,pontoPartida));
+      return dA>dB?a:b;
+    });
+    seeds.push(seed); rotas[i].push(seed);
+    restantes=restantes.filter(e=>e.nome!==seed.nome);
+  }
+
+  // 2️⃣ Distribuição gulosa
+  let round=true;
+  while(restantes.length>0 && round){
+    round=false;
+    for(let i=0;i<nRotas;i++){
+      if(restantes.length==0) break;
+      if(rotas[i].length>=maxEscolas) continue;
+      let seed=rotas[i][0];
+      let closest=restantes.reduce((a,b)=>distanciaKm(a,seed)<distanciaKm(b,seed)?a:b);
+      rotas[i].push(closest);
+      restantes=restantes.filter(e=>e.nome!==closest.nome);
+      round=true;
+    }
+  }
+
+  // 3️⃣ Sequenciamento TSP simples
+  const rotasSequenciadas = rotas.map(r=>{
+    if(r.length<=1) return r;
+    const ordered=[r[0]]; const toOrder=r.slice(1); let last=r[0];
+    while(toOrder.length>0){
+      let nextIdx=0, nextDist=distanciaKm(last,toOrder[0]);
+      for(let i=1;i<toOrder.length;i++){
+        let d=distanciaKm(last,toOrder[i]);
+        if(d<nextDist){ nextIdx=i; nextDist=d; }
+      }
+      last=toOrder[nextIdx];
+      ordered.push(last);
+      toOrder.splice(nextIdx,1);
+    }
+    return ordered;
+  });
+
+  // 4️⃣ Mostrar rotas + Google Maps
+  const container=document.getElementById("rotas-geradas"); container.innerHTML="";
+  rotasSequenciadas.forEach((r,i)=>{
+    const div=document.createElement("div"); div.className="rota-item";
+    const totalKm=r.reduce((acc,e,j)=> j==0? acc+distanciaKm(pontoPartida,e) : acc+distanciaKm(r[j-1],e),0)+distanciaKm(r[r.length-1],pontoPartida);
+    div.innerHTML=`<span>Rota ${i+1} — Estimativa: ${totalKm.toFixed(2)} km</span>`;
+    r.forEach(e=>{ const s=document.createElement("span"); s.textContent=e.nome; div.appendChild(s); });
+
+    let link=`https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}`;
+    r.forEach(e=>{ link+=`/${e.lat},${e.lng}`; });
+    link+=`/${pontoPartida.lat},${pontoPartida.lng}`;
+
+    const a=document.createElement("a"); a.href=link; a.target="_blank"; a.textContent="Abrir rota no Maps"; div.appendChild(a);
+    container.appendChild(div);
+  });
 }
 
-document.getElementById("busca").addEventListener("input", atualizarBusca);
 document.getElementById("gerar-rotas").addEventListener("click", gerarRotas);
 </script>
 </body>
