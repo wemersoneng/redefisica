@@ -16,46 +16,42 @@
         
         #map { position: absolute; top:0; bottom:0; left:0; right:0; z-index: 1; background: #e5e3df; }
 
-        .top-bar { position: absolute; top: 50px; left: 15px; right: 15px; z-index: 1000; display: flex; gap: 10px; }
-        .search-box { flex: 1; background: white; border-radius: 28px; display: flex; align-items: center; padding: 0 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); height: 50px; }
-        .search-box input { border: none; outline: none; width: 100%; font-size: 16px; margin-left: 10px; }
-        .settings-btn { background: white; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; }
+        /* Ajuste do Topo - Menor e mais alto */
+        .top-bar { position: absolute; top: 35px; left: 15px; right: 15px; z-index: 1000; display: flex; gap: 10px; }
+        .search-box { flex: 1; background: white; border-radius: 12px; display: flex; align-items: center; padding: 0 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); height: 45px; }
+        .search-box input { border: none; outline: none; width: 100%; font-size: 15px; margin-left: 10px; }
+        .settings-btn { background: white; border-radius: 12px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; }
 
-        /* Alerta de Capacidade */
-        #cap-warning { position: absolute; top: 110px; left: 15px; right: 15px; z-index: 1000; background: #fff3cd; color: #856404; padding: 10px; border-radius: 10px; font-size: 12px; display: none; border: 1px solid #ffeeba; text-align: center; font-weight: bold; }
+        #cap-warning { position: absolute; top: 90px; left: 15px; right: 15px; z-index: 1000; background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; font-size: 11px; display: none; border: 1px solid #ffeeba; text-align: center; font-weight: bold; }
 
-        #resultados-busca { position: absolute; top: 110px; left: 15px; right: 15px; background: white; border-radius: 16px; z-index: 1100; max-height: 250px; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: none; }
+        #resultados-busca { position: absolute; top: 90px; left: 15px; right: 15px; background: white; border-radius: 12px; z-index: 1100; max-height: 250px; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.15); display: none; }
 
-        .fab-gerar { position: absolute; bottom: 100px; right: 15px; z-index: 1000; background: var(--success); color: white; border: none; padding: 0 25px; height: 60px; border-radius: 30px; box-shadow: 0 6px 16px rgba(0,0,0,0.3); font-size: 16px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .fab-gerar { position: absolute; bottom: 90px; right: 15px; z-index: 1000; background: var(--success); color: white; border: none; padding: 0 20px; height: 50px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.2); font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
         .fab-gerar.error { background: var(--danger); }
 
-        /* Container de Rotas com Toggle */
-        #container-rotas { position: absolute; top: 110px; left: 15px; right: 15px; z-index: 998; pointer-events: none; }
-        .rota-card { background: white; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); pointer-events: auto; overflow: hidden; border-left: 6px solid var(--primary); }
-        .rota-header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; }
+        #container-rotas { position: absolute; top: 90px; left: 15px; right: 15px; z-index: 998; pointer-events: none; }
+        .rota-card { background: white; border-radius: 10px; margin-bottom: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); pointer-events: auto; overflow: hidden; border-left: 5px solid var(--primary); }
+        .rota-header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .rota-content { display: none; padding: 0 15px 15px; border-top: 1px solid #f0f0f0; }
         .rota-content.active { display: block; }
         
-        .btn-icon { border: none; background: #f0f0f0; width: 40px; height: 40px; border-radius: 10px; color: var(--dark); display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 18px; }
+        .btn-gps { border: none; background: var(--primary); color: white; width: 100%; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; font-weight: bold; gap: 8px; margin-top: 10px; }
 
-        .selected-panel { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1001; background: white; border-radius: 24px 24px 0 0; transform: translateY(calc(100% - 75px)); transition: 0.3s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); }
+        .selected-panel { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1001; background: white; border-radius: 20px 20px 0 0; transform: translateY(calc(100% - 70px)); transition: 0.3s ease; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); }
         .selected-panel.open { transform: translateY(0); }
-        .panel-header { height: 75px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; cursor: pointer; }
-
-        #toast { position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); background: var(--dark); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; z-index: 9999; display: none; }
+        .panel-header { height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="toast">Copiado! 📋</div>
-    <div id="cap-warning">⚠️ Escolas demais para a frota atual!</div>
+    <div id="cap-warning">Frota insuficiente para estas escolas!</div>
 
     <div class="top-bar">
         <div class="search-box">
-            <i class="fas fa-search" style="color:var(--primary)"></i>
-            <input type="text" id="busca" placeholder="Buscar escola...">
+            <i class="fas fa-search" style="color:#999"></i>
+            <input type="text" id="busca" placeholder="Buscar unidade...">
         </div>
-        <div class="settings-btn" onclick="toggleModal(true)"><i class="fas fa-cog"></i></div>
+        <div class="settings-btn" onclick="toggleModal(true)"><i class="fas fa-sliders-h"></i></div>
     </div>
 
     <div id="map"></div>
@@ -68,7 +64,7 @@
 
     <div class="selected-panel" id="panel">
         <div class="panel-header" onclick="togglePanel()">
-            <span style="font-weight: bold;">Escolas Selecionadas (<span id="badgeCount">0</span>)</span>
+            <span style="font-weight: 600;">Unidades Selecionadas (<span id="badgeCount">0</span>)</span>
             <i class="fas fa-chevron-up"></i>
         </div>
         <div id="lista-selecionadas" style="height: 350px; overflow-y: auto; padding: 0 20px;"></div>
@@ -76,12 +72,12 @@
 
     <div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; align-items:center; justify-content:center;">
         <div style="background:white; padding:25px; border-radius:20px; width:85%; max-width:300px;">
-            <h3 style="margin-top:0">Configurações</h3>
-            <label style="font-size:12px">VEÍCULOS DISPONÍVEIS</label>
+            <h3 style="margin:0 0 20px 0">Planejamento</h3>
+            <label style="font-size:11px; color:#666">VEÍCULOS</label>
             <input type="number" id="num-veiculos" value="2" oninput="checkCapacity()" style="width:100%; padding:12px; margin:5px 0 15px; border-radius:8px; border:1px solid #ddd;">
-            <label style="font-size:12px">CAPACIDADE POR CARRO</label>
+            <label style="font-size:11px; color:#666">PARADAS POR VEÍCULO</label>
             <input type="number" id="max-por-veiculo" value="5" oninput="checkCapacity()" style="width:100%; padding:12px; margin:5px 0 15px; border-radius:8px; border:1px solid #ddd;">
-            <button onclick="toggleModal(false)" style="width:100%; background:var(--primary); color:white; border:none; padding:15px; border-radius:10px; font-weight:bold;">SALVAR</button>
+            <button onclick="toggleModal(false)" style="width:100%; background:var(--dark); color:white; border:none; padding:15px; border-radius:10px; font-weight:bold;">FECHAR</button>
         </div>
     </div>
 
@@ -121,7 +117,7 @@
     const icoAzul = L.icon({ iconUrl:"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", iconSize:[25,41], iconAnchor:[12,41] });
     const icoVerde = L.icon({ iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png", iconSize:[25,41], iconAnchor:[12,41] });
     
-    L.marker([pontoPartida.lat, pontoPartida.lng], {icon: L.icon({iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", iconSize:[25,41]})}).addTo(map).bindPopup("<b>SEINFRA</b>");
+    L.marker([pontoPartida.lat, pontoPartida.lng], {icon: L.icon({iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", iconSize:[25,41]})}).addTo(map);
 
     escolas.forEach(e => {
         const m = L.marker([e.lat, e.lng], {icon:icoAzul}).addTo(map);
@@ -148,11 +144,10 @@
         const mP = parseInt(document.getElementById("max-por-veiculo").value);
         const warning = document.getElementById("cap-warning");
         const btn = document.getElementById("btnGerar");
-
         if (selecionadas.length > (nV * mP)) {
             warning.style.display = "block";
             btn.classList.add("error");
-            warning.innerHTML = `⚠️ Frota insuficiente! (Vagas: ${nV * mP} | Necessário: ${selecionadas.length})`;
+            warning.innerHTML = `⚠️ Frota insuficiente! (Limite: ${nV * mP})`;
         } else {
             warning.style.display = "none";
             btn.classList.remove("error");
@@ -165,7 +160,7 @@
         selecionadas.forEach(e => {
             const div = document.createElement("div");
             div.style = "display:flex; justify-content:space-between; padding:15px 0; border-bottom:1px solid #eee; align-items:center";
-            div.innerHTML = `<span style="font-size:14px">${e.nome}</span> <i class="fas fa-trash" style="color:var(--danger); padding:10px" onclick="removerPorId(${e.id})"></i>`;
+            div.innerHTML = `<span style="font-size:14px">${e.nome}</span> <i class="fas fa-times" style="color:#ccc; padding:10px" onclick="removerPorId(${e.id})"></i>`;
             list.appendChild(div);
         });
     }
@@ -195,12 +190,11 @@
             const data = await r.json();
 
             data.routes.forEach((rota, idx) => {
-                const cor = `hsl(${(idx * 137) % 360}, 70%, 50%)`;
+                const cor = `hsl(${(idx * 137) % 360}, 65%, 45%)`;
                 const pontos = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
                 const km = (rota.distance / 1000).toFixed(1);
                 
                 const googleUrl = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/` + pontos.map(p => `${p.lat},${p.lng}`).join("/") + `/${pontoPartida.lat},${pontoPartida.lng}`;
-                const shareText = `*ROTA ${idx+1} (${km}km)*\n` + pontos.map((p, i) => `${i+1}. ${p.nome}`).join("\n");
 
                 const card = document.createElement("div");
                 card.className = "rota-card";
@@ -208,16 +202,13 @@
                 card.innerHTML = `
                     <div class="rota-header" onclick="this.nextElementSibling.classList.toggle('active')">
                         <b>ROTA ${idx+1} (${km}km)</b>
-                        <i class="fas fa-chevron-down"></i>
+                        <i class="fas fa-chevron-down" style="font-size:12px; color:#999"></i>
                     </div>
                     <div class="rota-content">
-                        <ul style="padding-left:20px; font-size:13px; color:#555">
-                            ${pontos.map(p => `<li>${p.nome}</li>`).join("")}
+                        <ul style="padding-left:18px; font-size:13px; color:#555; margin:0">
+                            ${pontos.map(p => `<li style="margin-bottom:4px">${p.nome}</li>`).join("")}
                         </ul>
-                        <div style="display:flex; gap:10px; margin-top:10px">
-                            <button onclick="copiarTexto('${shareText.replace(/'/g, "\\'")}')" class="btn-icon"><i class="fas fa-copy"></i></button>
-                            <a href="${googleUrl}" target="_blank" class="btn-icon" style="color:var(--primary)"><i class="fas fa-location-arrow"></i></a>
-                        </div>
+                        <a href="${googleUrl}" target="_blank" class="btn-gps"><i class="fas fa-location-arrow"></i> ABRIR NO GOOGLE MAPS</a>
                     </div>
                 `;
                 document.getElementById("container-rotas").appendChild(card);
@@ -227,30 +218,10 @@
                     polilinhas.push(poly);
                 }
             });
-            if (polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
+            if (polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[40,40]});
             if (document.getElementById("panel").classList.contains("open")) togglePanel();
-        } catch (e) { alert("Servidor acordando... Tente em 10 segundos."); }
+        } catch (e) { alert("O servidor está iniciando. Aguarde 10 segundos."); }
         finally { btn.innerHTML = '<i class="fas fa-route"></i> GERAR ROTAS'; }
-    }
-
-    function copiarTexto(texto) {
-        const temp = document.createElement('textarea');
-        temp.value = texto;
-        document.body.appendChild(temp);
-        temp.select();
-        try {
-            document.execCommand('copy');
-            msgToast("Copiado! 📋");
-        } catch (err) {
-            alert("Copie o texto abaixo:\n\n" + texto);
-        }
-        document.body.removeChild(temp);
-    }
-
-    function msgToast(txt) {
-        const t = document.getElementById("toast");
-        t.innerText = txt; t.style.display = "block";
-        setTimeout(() => t.style.display = "none", 2500);
     }
 
     function decode(str) {
@@ -274,7 +245,7 @@
         res.innerHTML = "";
         escolas.filter(esc => esc.nome.toLowerCase().includes(val)).forEach(esc => {
             const d = document.createElement("div");
-            d.style = "padding:15px; border-bottom:1px solid #eee; cursor:pointer";
+            d.style = "padding:15px; border-bottom:1px solid #eee; cursor:pointer; font-size:14px";
             d.textContent = esc.nome;
             d.onclick = () => { map.flyTo([esc.lat, esc.lng], 16); alternar(esc); res.style.display="none"; };
             res.appendChild(d);
