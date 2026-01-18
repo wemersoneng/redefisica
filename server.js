@@ -1,27 +1,24 @@
-// server.js
-// Node.js + Express backend para proteger a chave da OpenRouteService
+import express from "express";
+import cors from "cors";
+import fetch from "node-fetch";
 
-const express = require("express");
-const fetch = require("node-fetch"); // npm install node-fetch
-const cors = require("cors");
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
-const ORS_API_KEY = "SUA_CHAVE_AQUI"; // coloque aqui sua chave ORS
+const ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImMwNzA3NmE4OGU1ZjQwNTRhNTI4M2ZkNzlmMTY4Y2Y2IiwiaCI6Im11cm11cjY0In0="; // substitua pela sua
 
-// Endpoint para gerar rotas
-app.post("/gerar-rotas", async (req, res) => {
+// Roteirização
+app.post("/rotas", async (req, res) => {
   try {
-    const payload = req.body;
+    const { jobs, vehicles } = req.body;
 
-    // Profile correto da ORS
-    payload.profile = "driving-car";
-    payload.options = { g: true }; // para rotas geográficas
+    // Monta payload para a ORS Optimization API
+    const payload = { jobs, vehicles };
 
-    const response = await fetch("https://api.openrouteservice.org/optimization", {
+    const resp = await fetch("https://api.openrouteservice.org/optimization", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -30,17 +27,16 @@ app.post("/gerar-rotas", async (req, res) => {
       body: JSON.stringify(payload)
     });
 
-    const data = await response.json();
+    const data = await resp.json();
+    if (data.error) return res.status(400).json({ error: data.error });
 
-    if (data.error) {
-      return res.status(400).json({ error: data.error });
-    }
-
-    res.json(data);
+    return res.json(data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Erro na comunicação com a API" });
+    return res.status(500).json({ error: "Erro na comunicação com a API" });
   }
 });
 
-app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
