@@ -221,18 +221,57 @@
     const map = L.map('map', { zoomControl: false }).setView([pontoPartida.lat, pontoPartida.lng], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    function getCor(tipo) { return { infantil: '#00bcd4', fundamental: '#9c27b0', mista: '#ff9800', equipamento: '#607d8b' }[tipo] || '#1a73e8'; }
+// 1. Definição das Cores (Lógica de intensidade para Integral/Parcial)
+function getCor(tipo, modalidade) {
+    const cores = {
+        infantil:    { parcial: '#a2d2ff', integral: '#0077b6' }, // Tons de Azul
+        fundamental: { parcial: '#ffafcc', integral: '#c9184a' }, // Tons de Rosa/Vinho
+        mista:       { parcial: '#ffcb6b', integral: '#fb8500' }, // Tons de Laranja
+        equipamento: { parcial: '#ced4da', integral: '#495057' }  // Tons de Cinza
+    };
+    return cores[tipo][modalidade] || '#1a73e8';
+}
 
-    function criarIcone(e, sel = false, numero = null) {
-        const conteudo = numero !== null 
-            ? `<span style="transform:rotate(45deg); color:white; font-weight:bold; font-size:14px">${numero}</span>`
-            : `<i class="fas fa-school" style="transform:rotate(45deg); color:white; font-size:12px"></i>`;
-        return L.divIcon({
-            className: '',
-            html: `<div class="${sel?'marker-pulse':''}" style="background:${getCor(e.tipo)}; width:30px; height:30px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3)">${conteudo}</div>`,
-            iconSize: [30, 30], iconAnchor: [15, 30]
-        });
-    }
+// 2. Definição dos Ícones por tipo
+function getSimbolo(tipo) {
+    const simbolos = {
+        infantil: 'fa-baby',
+        fundamental: 'fa-book',
+        mista: 'fa-graduation-cap', // Sugestão para mista
+        equipamento: 'fa-school'
+    };
+    return simbolos[tipo] || 'fa-map-marker-alt';
+}
+
+// 3. Função Criar Icone Atualizada
+function criarIcone(e, sel = false, numero = null) {
+    const corBase = getCor(e.tipo, e.modalidade);
+    const simbolo = getSimbolo(e.tipo);
+    
+    // Borda amarela se estiver selecionada, caso contrário, borda branca
+    const borda = sel ? '3px solid #FFD700' : '2px solid white';
+    const shadow = sel ? '0 0 15px rgba(255, 215, 0, 0.8)' : '0 2px 5px rgba(0,0,0,0.3)';
+
+    const conteudo = numero !== null 
+        ? `<span style="transform:rotate(45deg); color:white; font-weight:bold; font-size:14px">${numero}</span>`
+        : `<i class="fas ${simbolo}" style="transform:rotate(45deg); color:white; font-size:12px"></i>`;
+
+    return L.divIcon({
+        className: '',
+        html: `<div class="${sel ? 'marker-pulse' : ''}" 
+                 style="background:${corBase}; 
+                        width:32px; height:32px; 
+                        border-radius:50% 50% 50% 0; 
+                        transform:rotate(-45deg); 
+                        display:flex; align-items:center; justify-content:center; 
+                        border:${borda}; 
+                        box-shadow:${shadow}">
+                ${conteudo}
+               </div>`,
+        iconSize: [32, 32], 
+        iconAnchor: [16, 32]
+    });
+}
 
     L.marker([pontoPartida.lat, pontoPartida.lng], {icon: L.icon({iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", iconSize:[25,41]})}).addTo(map);
 
