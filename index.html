@@ -160,7 +160,8 @@ async function gerarRotas(){
   // Monta payload
   const jobs = escolasSelecionadas.map((e,i)=>({id:i+1, location:[e.lng,e.lat], name:e.nome, service:0}));
   const vehicles = Array.from({length:nRotas},(_,i)=>({id:i+1,start:[pontoPartida.lng,pontoPartida.lat],end:[pontoPartida.lng,pontoPartida.lat],capacity:[maxEscolas]}));
-  const payload = {jobs, vehicles};
+  const payload = {jobs, vehicles, options: { g: true }, profile: "driving-car"};
+
 
   try{
     const resp = await fetch("https://api.openrouteservice.org/optimization",{
