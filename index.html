@@ -2,87 +2,76 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Roteirização de Vistorias — Educação</title>
+  <title>Roteirização de Vistorias</title>
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
 
   <style>
-    html, body {
+    body, html {
       margin: 0;
       padding: 0;
       height: 100%;
-      font-family: Arial, sans-serif;
-      font-size: 16px; /* base maior */
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    .top-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 56px;
-      background: #1f3c88;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      padding: 0 14px;
-      z-index: 1000;
-    }
-
-    .top-bar strong {
-      font-size: 17px;
+    #topo {
+      padding: 10px;
+      background: #1f2937;
+      color: white;
+      font-size: 14px;
     }
 
     #map {
-      position: absolute;
-      top: 56px;
-      bottom: 0;
-      left: 0;
-      right: 0;
-    }
-
-    /* Popups maiores */
-    .leaflet-popup-content {
-      font-size: 15px;
-      line-height: 1.4;
+      width: 100%;
+      height: calc(100% - 60px);
     }
   </style>
 </head>
+
 <body>
 
-  <div class="top-bar">
+  <div id="topo">
     <strong>
-  Roteirização de Vistorias — Educação<br>
-  <span id="contador">0 escolas selecionadas</span>
-</strong>
-
+      Roteirização de Vistorias — Educação<br>
+      <span id="contador">0 escolas selecionadas</span>
+    </strong>
   </div>
 
   <div id="map"></div>
 
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    // ===============================
-    // ÍCONES PERSONALIZADOS
-    // ===============================
+    // =========================
+    // MAPA
+    // =========================
+    const map = L.map("map").setView(
+      [-7.225, -39.315],
+      13
+    );
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap"
+    }).addTo(map);
+
+    // =========================
+    // ÍCONES
+    // =========================
     const iconeEscola = L.icon({
-      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
       shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34]
     });
-
-    const iconeSeinfra = L.icon({
-      iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34]
 
     const iconeSelecionado = L.icon({
       iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
@@ -90,96 +79,85 @@
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34]
-});
-
     });
 
-    // ===============================
+    const iconeSEINFRA = L.icon({
+      iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34]
+    });
+
+    // =========================
     // DADOS
-    // ===============================
-    const pontoInicial = {
-      nome: "SEINFRA – Secretaria de Infraestrutura",
+    // =========================
+    const seinfra = {
+      nome: "SEINFRA",
       lat: -7.194722139209482,
       lng: -39.31536456230205
     };
 
     const escolas = [
-      { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.2990276371078 },
-      { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.337978081951 },
-      { nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.2706373538735 },
-      { nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.3401421154183 },
-      { nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.3203756324349 },
-      { nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.3040243084451 },
-      { nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.3120535228306 },
-      { nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.3380810825261 },
-      { nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.2881807137818 },
-      { nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.2212733688187, lng: -39.3049568880832 },
-      { nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.209768816431, lng: -39.3043615607158 },
-      { nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.256686063445, lng: -39.3367927455382 },
-      { nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.2913869722279 },
-      { nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.3349914283363 },
-      { nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.3281379429735 },
-      { nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.3304022869512 },
-      { nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.3283410635591 },
-      { nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.3529613659557 },
-      { nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.2981269263073 },
-      { nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.3245732199113 }
+      { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
+      { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
+      { nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.27063735387350 },
+      { nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.34014211541830 },
+      { nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.32037563243490 },
+      { nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.30402430844510 },
+      { nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.31205352283060 },
+      { nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.33808108252610 },
+      { nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.28818071378180 },
+      { nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.22127336881870, lng: -39.30495688808320 },
+      { nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.20976881643100, lng: -39.30436156071580 },
+      { nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.25668606344500, lng: -39.33679274553820 },
+      { nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.29138697222790 },
+      { nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.33499142833630 },
+      { nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.32813794297350 },
+      { nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.33040228695120 },
+      { nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.32834106355910 },
+      { nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.35296136595570 },
+      { nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.29812692630730 },
+      { nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.32457321991130 }
     ];
 
-    // ===============================
-    // MAPA
-    // ===============================
+    // =========================
+    // SEINFRA
+    // =========================
+    L.marker([seinfra.lat, seinfra.lng], { icon: iconeSEINFRA })
+      .addTo(map)
+      .bindPopup("<strong>SEINFRA</strong><br>Ponto de partida");
+
+    // =========================
+    // SELEÇÃO
+    // =========================
     const escolasSelecionadas = [];
 
-    const map = L.map("map").setView(
-      [pontoInicial.lat, pontoInicial.lng],
-      13
-    );
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap"
-    }).addTo(map);
-
-    // SEINFRA
-    L.marker([pontoInicial.lat, pontoInicial.lng], { icon: iconeSeinfra })
-      .addTo(map)
-      .bindPopup("<strong>SEINFRA</strong><br>Ponto inicial das rotas");
-
-    // ESCOLAS
-escolas.forEach(e => {
-
-  const marcador = L.marker([e.lat, e.lng], { icon: iconeEscola })
-    .addTo(map)
-    .bindPopup(`<strong>${e.nome}</strong><br>Toque para selecionar`);
-
-  marcador.selecionado = false;
-
-  marcador.on("click", () => {
-    if (!marcador.selecionado) {
-      marcador.setIcon(iconeSelecionado);
-      marcador.selecionado = true;
-      escolasSelecionadas.push(e);
-    } else {
-      marcador.setIcon(iconeEscola);
-      marcador.selecionado = false;
-
-      const index = escolasSelecionadas.findIndex(
-        x => x.nome === e.nome
-      );
-      if (index !== -1) {
-        escolasSelecionadas.splice(index, 1);
-      }
+    function atualizarContador() {
+      document.getElementById("contador").textContent =
+        `${escolasSelecionadas.length} escolas selecionadas`;
     }
 
-    atualizarContador();
-  });
-});
+    escolas.forEach(e => {
+      const marcador = L.marker([e.lat, e.lng], { icon: iconeEscola })
+        .addTo(map)
+        .bindPopup(`<strong>${e.nome}</strong><br>Toque para selecionar`);
 
-    function atualizarContador() {
-      const el = document.getElementById("contador");
-      el.textContent = `${escolasSelecionadas.length} escolas selecionadas`;
-}
+      marcador.selecionado = false;
 
+      marcador.on("click", () => {
+        if (!marcador.selecionado) {
+          marcador.setIcon(iconeSelecionado);
+          marcador.selecionado = true;
+          escolasSelecionadas.push(e);
+        } else {
+          marcador.setIcon(iconeEscola);
+          marcador.selecionado = false;
+          const i = escolasSelecionadas.findIndex(x => x.nome === e.nome);
+          if (i !== -1) escolasSelecionadas.splice(i, 1);
+        }
+        atualizarContador();
+      });
     });
   </script>
 
