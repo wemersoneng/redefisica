@@ -138,10 +138,12 @@ async function gerarRotas(){
   if(escolasSelecionadas.length===0){ alert("Selecione ao menos uma escola"); return; }
 
   try{
-    const resp = await fetch("/rotas", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ escolas: escolasSelecionadas, nRotas, maxEscolas })
+    const resp = await fetch("https://redefisica.onrender.com/rotas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jobs, vehicles })
+});
+    
     });
     const data = await resp.json();
     if(data.error){ alert("Erro na API: "+data.error); return; }
