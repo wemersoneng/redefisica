@@ -28,7 +28,7 @@ input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0
 
 <div id="topo">
   <strong>
-    Roteirização de Vistorias — Educação<br>
+    Roteirização<br>
     <span id="contador">0 escolas selecionadas</span>
   </strong>
 </div>
@@ -165,11 +165,12 @@ async function gerarRotas(){
   const payload = { jobs, vehicles };
 
   try {
-    const resp = await fetch("http://localhost:3000/gerar-rotas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    const resp = await fetch("https://redefisica.onrender.com/gerar-rotas", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
 
     const data = await resp.json();
     if(data.error){ alert("Erro na API: "+JSON.stringify(data.error)); return; }
