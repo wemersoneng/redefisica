@@ -224,10 +224,10 @@
 // 1. Definição das Cores (Lógica de intensidade para Integral/Parcial)
 function getCor(tipo, modalidade) {
     const cores = {
-        infantil:    { parcial: '#FFB300', integral: '#FFE082' }, // Amarelo vibrante vs Amarelo Pastel
-        fundamental: { parcial: '#0074D9', integral: '#7FBFFF' }, // Azul Royal vs Azul Céu
-        mista:       { parcial: '#2ECC40', integral: '#A2E9A9' }, // Verde Esmeralda vs Verde Menta
-        equipamento: { parcial: '#8E8E8E', integral: '#D1D1D1' }  // Cinza Sólido vs Cinza Prata
+        infantil:    { parcial: '#FF007F', integral: '#FFB2D9' }, 
+        fundamental: { parcial: '#7000FF', integral: '#D7B3FF' }, 
+        mista:       { parcial: '#00F5D4', integral: '#BFFFF7' }, 
+        equipamento: { parcial: '#FF9100', integral: '#FFDDB3' }  
     };
 
     return cores[tipo][modalidade] || '#1a73e8';
