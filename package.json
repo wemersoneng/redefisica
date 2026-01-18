@@ -1,6 +1,7 @@
 {
-  "name": "roteirizacao-backend",
+  "name": "redefisica-backend",
   "version": "1.0.0",
+  "description": "Backend para otimização de rotas com OpenRouteService",
   "main": "server.js",
   "type": "module",
   "scripts": {
