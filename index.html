@@ -10,11 +10,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
-    body { margin:0; font-family: Arial, Helvetica, sans-serif; }
+    html, body { height:100%; margin:0; font-family: Arial, Helvetica, sans-serif; display:flex; flex-direction:column; }
     #topo { padding:10px; background:#1f4fd8; color:white; font-size:16px; }
     #contador { font-size:14px; opacity:0.9; }
-    #map { height:50vh; }
-    #painel { padding:10px; max-height:50vh; overflow-y:auto; background:#f5f5f5; }
+    #map { flex:1; }
+    #painel { flex:1; padding:10px; overflow-y:auto; background:#f5f5f5; }
     input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0; font-size:14px; }
     .resultado-busca, .escola-item, .rota-item { display:flex; align-items:center; justify-content:space-between; padding:6px; margin-bottom:4px; background:white; border-radius:4px; font-size:14px; }
     .resultado-busca label { flex:1; margin-left:6px; cursor:pointer; }
@@ -22,6 +22,7 @@
     .escola-item span { cursor:pointer; }
     .rota-item { flex-direction:column; background:#e3e3e3; padding:8px; }
     .rota-item span { font-weight:bold; margin-bottom:4px; }
+    .rota-item a { text-decoration:none; color:white; background:#1f4fd8; padding:4px 8px; border-radius:4px; display:inline-block; margin-top:6px; }
   </style>
 </head>
 <body>
@@ -59,29 +60,28 @@
 
 <script>
 const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
-
-  const escolas = [
-    { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
-    { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
-    { nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.27063735387350 },
-    { nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.34014211541830 },
-    { nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.32037563243490 },
-    { nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.30402430844510 },
-    { nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.31205352283060 },
-    { nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.33808108252610 },
-    { nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.28818071378180 },
-    { nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.22127336881870, lng: -39.30495688808320 },
-    { nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.20976881643100, lng: -39.30436156071580 },
-    { nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.25668606344500, lng: -39.33679274553820 },
-    { nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.29138697222790 },
-    { nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.33499142833630 },
-    { nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.32813794297350 },
-    { nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.33040228695120 },
-    { nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.32834106355910 },
-    { nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.35296136595570 },
-    { nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.29812692630730 },
-    { nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.32457321991130 }
-  ];
+const escolas = [
+  { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
+  { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
+  { nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.27063735387350 },
+  { nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.34014211541830 },
+  { nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.32037563243490 },
+  { nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.30402430844510 },
+  { nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.31205352283060 },
+  { nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.33808108252610 },
+  { nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.28818071378180 },
+  { nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.22127336881870, lng: -39.30495688808320 },
+  { nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.20976881643100, lng: -39.30436156071580 },
+  { nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.25668606344500, lng: -39.33679274553820 },
+  { nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.29138697222790 },
+  { nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.33499142833630 },
+  { nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.32813794297350 },
+  { nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.33040228695120 },
+  { nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.32834106355910 },
+  { nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.35296136595570 },
+  { nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.29812692630730 },
+  { nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.32457321991130 }
+];
 
 const escolasSelecionadas = [];
 const marcadores = {};
@@ -201,7 +201,7 @@ function gerarRotas(){
       let nextDist=distanciaKm(last,toOrder[0]);
       for(let i=1;i<toOrder.length;i++){
         let d=distanciaKm(last,toOrder[i]);
-        if(d<nextDist){ nextDist=d; nextIdx=i; nextDist=d; }
+        if(d<nextDist){ nextIdx=i; nextDist=d; }
       }
       last=toOrder[nextIdx];
       ordered.push(last);
@@ -210,51 +210,32 @@ function gerarRotas(){
     return ordered;
   });
 
- // 4️⃣ Mostrar rotas e distância
-const container = document.getElementById("rotas-geradas");
-container.innerHTML = "";
+  // 4️⃣ Mostrar rotas, distância e link
+  const container=document.getElementById("rotas-geradas"); container.innerHTML="";
+  rotasSequenciadas.forEach((r,i)=>{
+    const div=document.createElement("div"); div.className="rota-item";
+    const totalKm=r.reduce((acc,e,j)=>{
+      if(j==0) return acc+distanciaKm(pontoPartida,e);
+      return acc+distanciaKm(r[j-1],e);
+    },0)+distanciaKm(r[r.length-1],pontoPartida);
+    div.innerHTML=`<span>Rota ${i+1} — Estimativa: ${totalKm.toFixed(2)} km</span>`;
+    r.forEach(e=>{
+      const s=document.createElement("span"); s.textContent=e.nome; div.appendChild(s);
+    });
 
-rotasSequenciadas.forEach((r, i) => {
-  const div = document.createElement("div");
-  div.className = "rota-item";
+    // ✅ Link Google Maps
+    let link = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}`;
+    r.forEach(e=>{ link += `/${e.lat},${e.lng}`; });
+    link += `/${pontoPartida.lat},${pontoPartida.lng}`;
+    const btn = document.createElement("a"); btn.href=link; btn.target="_blank"; btn.textContent="Abrir rota no Maps";
+    div.appendChild(btn);
 
-  // Calcula distância total aproximada
-  const totalKm = r.reduce((acc, e, j) => {
-    if (j == 0) return acc + distanciaKm(pontoPartida, e);
-    return acc + distanciaKm(r[j - 1], e);
-  }, 0) + distanciaKm(r[r.length - 1], pontoPartida);
-
-  div.innerHTML = `<span>Rota ${i + 1} — Estimativa: ${totalKm.toFixed(2)} km</span>`;
-
-  // Lista as escolas
-  r.forEach(e => {
-    const s = document.createElement("span");
-    s.textContent = e.nome;
-    div.appendChild(s);
+    container.appendChild(div);
   });
 
-  // ✅ LINK GOOGLE MAPS
-  let link = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}`;
-  r.forEach(e => {
-    link += `/${e.lat},${e.lng}`;
-  });
-  link += `/${pontoPartida.lat},${pontoPartida.lng}`; // opcional: volta à origem
-
-  const btn = document.createElement("a");
-  btn.href = link;
-  btn.target = "_blank";
-  btn.textContent = "Abrir rota no Maps";
-  btn.style.display = "inline-block";
-  btn.style.marginTop = "6px";
-  btn.style.color = "white";
-  btn.style.background = "#1f4fd8";
-  btn.style.padding = "4px 8px";
-  btn.style.borderRadius = "4px";
-  div.appendChild(btn);
-
-  container.appendChild(div);
-});
-
+  // Força o Leaflet a recalcular tamanho
+  map.invalidateSize();
+}
 
 document.getElementById("gerar-rotas").addEventListener("click", gerarRotas);
 </script>
