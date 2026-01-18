@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Roteirização de Vistorias — Educação</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-o9N1j7kCuxR2Pj8r+6k9sC2Wz3wZf2U6p3p3pQtGAE="
+    crossorigin=""
+  />
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    /* Barra superior simples */
+    .top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: #1f3c88;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      z-index: 1000;
+      font-size: 14px;
+    }
+
+    .top-bar strong {
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <strong>Roteirização de Vistorias — Educação</strong>
+  </div>
+
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o8EeZ0pniNXh9vDOMkMt2rtI8BGG99nmHn7+4PSmXwE="
+    crossorigin=""
+  ></script>
+
+  <script>
+    // ===============================
+    // PONTO DE PARTIDA — SEINFRA
+    // ===============================
+    const pontoInicial = {
+      nome: "SEINFRA – Secretaria de Infraestrutura",
+      lat: -7.194722139209482,
+      lng: -39.31536456230205
+    };
+
+    // ===============================
+    // LISTA DE ESCOLAS
+    // ===============================
+    const escolas = [
+      { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.2990276371078 },
+      { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.337978081951 },
+      { nome: "IRMÃ ANA TEREZINHA EMEI", lat: -7.20154173144659, lng: -39.2706373538735 },
+      { nome: "PROFª FRANCISCA LETICIA DO AMARAL BRASILEIRO EMEI", lat: -7.22819953348265, lng: -39.3401421154183 },
+      { nome: "PROFª MARIA BERNADETE DE ALENCAR SANTOS EMEI", lat: -7.23045717488514, lng: -39.3203756324349 },
+      { nome: "PROFª MANOELA RIBEIRO SALVIANO EMEI", lat: -7.23370145013908, lng: -39.3040243084451 },
+      { nome: "ANA AMÉLIA BEZERRA DE MENEZES E SOUZA CEI", lat: -7.22167008303821, lng: -39.3120535228306 },
+      { nome: "CAIC - DOM ANTÔNIO CAMPELO DE ARAGÃO CEI", lat: -7.24575342177806, lng: -39.3380810825261 },
+      { nome: "DRA. ZILDA ARNS CEI", lat: -7.24803414389138, lng: -39.2881807137818 },
+      { nome: "IRMÃ NELY SOBREIRA EMEI", lat: -7.2212733688187, lng: -39.3049568880832 },
+      { nome: "PROFª FRANCISCA PEREIRA DE MATOS EMEI", lat: -7.209768816431, lng: -39.3043615607158 },
+      { nome: "PROFª MARIA DA CONCEIÇÃO RIBEIRO DE SOUSA EMEI", lat: -7.256686063445, lng: -39.3367927455382 },
+      { nome: "VEREADOR GETULIO GRANGEIRO PEREIRA CEI", lat: -7.21865806580961, lng: -39.2913869722279 },
+      { nome: "ADALGISA GOMES DE FIGUEREDO EMEI", lat: -7.26042254449341, lng: -39.3349914283363 },
+      { nome: "DAYSE SAMPAIO EMEI", lat: -7.19257120524175, lng: -39.3281379429735 },
+      { nome: "JOANA TERTULINA DE JESUS EMEI", lat: -7.21752233220798, lng: -39.3304022869512 },
+      { nome: "JOARYVAR MACÊDO EMEI", lat: -7.21230048797039, lng: -39.3283410635591 },
+      { nome: "JOSÉ PERBOYRE SAMPAIO SABIÁ EMEI", lat: -7.22791993798005, lng: -39.3529613659557 },
+      { nome: "MADRE MARIA VILLAC EMEI", lat: -7.21869772591523, lng: -39.2981269263073 },
+      { nome: "MARIA DIRCÍOLA GERMANO EMEI", lat: -7.26205983871444, lng: -39.3245732199113 }
+    ];
+
+    // ===============================
+    // INICIALIZAÇÃO DO MAPA
+    // ===============================
+    const map = L.map("map", {
+      zoomControl: true
+    }).setView([pontoInicial.lat, pontoInicial.lng], 13);
+
+    // Camada OpenStreetMap
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap"
+    }).addTo(map);
+
+    // ===============================
+    // MARCADOR DO PONTO INICIAL
+    // ===============================
+    const seinfraMarker = L.marker(
+      [pontoInicial.lat, pontoInicial.lng],
+      { title: pontoInicial.nome }
+    ).addTo(map);
+
+    seinfraMarker.bindPopup(`<strong>${pontoInicial.nome}</strong><br>Ponto inicial das rotas`);
+
+    // ===============================
+    // MARCADORES DAS ESCOLAS
+    // ===============================
+    escolas.forEach(escola => {
+      const marker = L.marker([escola.lat, escola.lng])
+        .addTo(map)
+        .bindPopup(`<strong>${escola.nome}</strong>`);
+    });
+  </script>
+
+</body>
+</html>
