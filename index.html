@@ -16,7 +16,6 @@
         
         #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; }
 
-        /* Status do Servidor */
         .server-status {
             position: absolute; bottom: 70px; left: 15px; z-index: 1000;
             background: white; padding: 5px 10px; border-radius: 15px;
@@ -27,7 +26,6 @@
         }
         #ponto-status { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
 
-        /* Interface Superior */
         .top-bar { position: absolute; top: 20px; left: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         .row-search { display: flex; gap: 8px; pointer-events: auto; }
         .search-box { flex: 1; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: relative; }
@@ -42,6 +40,7 @@
         }
         .item-busca { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; }
         .menu-btn { background: white; border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; pointer-events: auto; }
+        .btn-reset { color: var(--danger); }
 
         .filter-container { display: flex; flex-direction: column; gap: 6px; pointer-events: auto; }
         .filter-row { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; }
@@ -49,7 +48,6 @@
         .pill.active { background: var(--dark); color: white; }
         .pill.active-mod { border-color: var(--primary); color: var(--primary); }
 
-        /* Drawer Lateral */
         .drawer { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: white; z-index: 2000; transition: 0.3s; box-shadow: 5px 0 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
         .drawer.open { left: 0; }
         .drawer-header { padding: 20px; background: var(--dark); color: white; display: flex; justify-content: space-between; align-items: center; }
@@ -107,6 +105,7 @@
                 </div>
                 <div id="lista-pesquisa"></div>
             </div>
+            <div class="menu-btn btn-reset" onclick="resetGeral()"><i class="fas fa-sync-alt"></i></div>
             <div class="menu-btn" onclick="toggleModal(true)"><i class="fas fa-cog"></i></div>
         </div>
         <div class="filter-container">
@@ -202,7 +201,6 @@
     }
 
     function atualizarUI() {
-        // Badge e Lista Inferior
         document.getElementById('badgeCount').innerText = selecionadas.length;
         const lista = document.getElementById('lista-selecionadas');
         lista.innerHTML = selecionadas.map(s => `
@@ -212,7 +210,6 @@
             </div>
         `).join("");
 
-        // Drawer Lateral por Categoria
         const dContent = document.getElementById('drawer-list');
         dContent.innerHTML = "";
         const tipos = [...new Set(escolas.map(e => e.tipo))];
@@ -232,7 +229,6 @@
         });
     }
 
-    // Busca
     document.getElementById('busca').addEventListener('input', function(e) {
         const t = e.target.value.toLowerCase();
         const lista = document.getElementById('lista-pesquisa');
@@ -296,7 +292,9 @@
                 const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
                 
                 const card = document.createElement("div");
-                card.className = "rota-card"; card.style.borderLeftColor = cor;
+                card.className = "rota-card"; 
+                card.id = `card-rota-${idx}`;
+                card.style.borderLeftColor = cor;
                 card.innerHTML = `
                     <div class="rota-header" onclick="toggleFiltroRota(${idx}, this)">
                         <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px">
@@ -326,7 +324,15 @@
         const details = el.nextElementSibling;
         const isActive = details.classList.contains('active');
         
-        // RESET GERAL
+        // Esconde ou mostra outros cards (Melhoria 1)
+        document.querySelectorAll('.rota-card').forEach(c => {
+            if(c.id === `card-rota-${idx}`) {
+                c.style.display = "block";
+            } else {
+                c.style.display = isActive ? "block" : "none";
+            }
+        });
+
         document.querySelectorAll('.rota-details').forEach(d => d.classList.remove('active'));
         polilinhas.forEach(p => map.addLayer(p));
         escolas.forEach(e => {
@@ -339,27 +345,44 @@
             details.classList.add('active');
             const steps = rotasAtivas[idx].steps.filter(s => s.type === "job");
             const idsRota = steps.map(s => Number(s.id));
-
-            // Filtro Linhas: Esconde outras
             polilinhas.forEach((p, pIdx) => { if(pIdx !== idx) map.removeLayer(p); });
-
-            // Filtro Ícones: Numerar selecionados e esconder outros
             escolas.forEach(e => {
                 const ordem = idsRota.indexOf(e.id);
-                if(ordem === -1) {
-                    map.removeLayer(marcadores[e.id]);
-                } else {
+                if(ordem === -1) { map.removeLayer(marcadores[e.id]); } 
+                else {
                     marcadores[e.id].setIcon(criarIcone(e, true, ordem + 1));
                     marcadores[e.id].addTo(map);
                 }
             });
-            
             const grupoRota = L.featureGroup(idsRota.map(id => marcadores[id]));
             map.fitBounds(grupoRota.getBounds(), {padding: [80,80]});
         }
     }
 
-    // Filtros de UI Superior
+    // RESET GERAL (Melhoria 2)
+    function resetGeral() {
+        selecionadas = [];
+        polilinhas.forEach(p => map.removeLayer(p));
+        polilinhas = [];
+        document.getElementById("container-rotas").innerHTML = "";
+        
+        // Reset de Filtros
+        filtroTipo = 'todos';
+        filtroMod = 'todos';
+        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active', 'active-mod'));
+        document.querySelector('#row-tipos .pill').classList.add('active');
+
+        // Reset de Marcadores
+        escolas.forEach(e => {
+            marcadores[e.id].setIcon(criarIcone(e, false));
+            marcadores[e.id].addTo(map);
+        });
+        
+        atualizarUI();
+        map.setView([pontoPartida.lat, pontoPartida.lng], 13);
+        if(document.getElementById('panel').classList.contains('open')) togglePanel();
+    }
+
     function setFiltroTipo(t, el) {
         document.querySelectorAll('#row-tipos .pill').forEach(p => p.classList.remove('active'));
         el.classList.add('active'); filtroTipo = t; aplicarFiltrosFixos();
