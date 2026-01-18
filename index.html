@@ -271,7 +271,62 @@
         resultados.appendChild(div);
       });
   }
+  
+  function gerarRotas() {
+  const numRotas = Number(document.getElementById("numRotas").value);
+  const maxPorRota = Number(document.getElementById("maxPorRota").value);
 
+  if (escolasSelecionadas.length === 0) {
+    alert("Selecione pelo menos uma escola.");
+    return;
+  }
+
+  if (escolasSelecionadas.length > numRotas * maxPorRota) {
+    alert("Quantidade de escolas acima da capacidade.");
+    return;
+  }
+
+  const rotas = Array.from({ length: numRotas }, () => []);
+
+  escolasSelecionadas.forEach((escola, i) => {
+    rotas[i % numRotas].push(escola);
+  });
+
+  exibirRotas(rotas);
+}
+
+  function distanciaTotalRota(escolas) {
+  let total = 0;
+  let atual = pontoPartida;
+
+  escolas.forEach(e => {
+    total += distanciaKm(atual, e);
+    atual = e;
+  });
+
+  total += distanciaKm(atual, pontoPartida);
+  return total.toFixed(2);
+}
+
+function exibirRotas(rotas) {
+  const container = document.getElementById("resultado-rotas");
+  container.innerHTML = "";
+
+  rotas.forEach((rota, i) => {
+    const bloco = document.createElement("div");
+
+    bloco.innerHTML = `
+      <strong>Rota ${i + 1}</strong><br>
+      ${rota.map(e => "• " + e.nome).join("<br>")}
+      <br><em>Distância estimada: ${distanciaTotalRota(rota)} km</em>
+    `;
+
+    bloco.style.marginBottom = "10px";
+    container.appendChild(bloco);
+  });
+}
+
+  
   document.getElementById("busca").addEventListener("input", atualizarBusca);
 </script>
 
