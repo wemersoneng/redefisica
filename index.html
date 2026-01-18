@@ -192,7 +192,6 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSANDO...';
     
-    // Limpa rotas anteriores
     polilinhas.forEach(p => map.removeLayer(p));
     polilinhas = [];
     document.getElementById("container-rotas").innerHTML = "";
@@ -200,17 +199,18 @@
     const nV = parseInt(document.getElementById("num-veiculos").value) || 1;
     const mP = parseInt(document.getElementById("max-por-veiculo").value) || 10;
 
+    // PAYLOAD AJUSTADO: ID como número e Longitude primeiro
     const payload = {
         jobs: selecionadas.map(e => ({
-            id: String(e.id),
-            location: [Number(e.lng), Number(e.lat)], // Longitude primeiro para o VROOM
+            id: Number(e.id), 
+            location: [Number(e.lng), Number(e.lat)], 
             amount: [1]
         })),
         vehicles: Array.from({length: nV}, (_, i) => ({
             id: i,
             profile: "driving-car",
-            start: [pontoPartida.lng, pontoPartida.lat],
-            end: [pontoPartida.lng, pontoPartida.lat],
+            start: [Number(pontoPartida.lng), Number(pontoPartida.lat)],
+            end: [Number(pontoPartida.lng), Number(pontoPartida.lat)],
             capacity: [mP]
         }))
     };
@@ -222,22 +222,19 @@
             body: JSON.stringify(payload)
         });
 
-        if (!r.ok) throw new Error(`Erro do servidor: ${r.status}`);
-
         const data = await r.json();
 
-        if (!data.routes || data.routes.length === 0) {
-            alert("O servidor não conseguiu encontrar uma rota válida para esses pontos.");
-            return;
+        if (data.error || !data.routes) {
+            throw new Error(data.error || "Erro desconhecido na API");
         }
 
         data.routes.forEach((rota, idx) => {
             const cor = `hsl(${(idx * 137) % 360}, 70%, 50%)`;
             const pontosDaRota = rota.steps
                 .filter(s => s.type === "job")
-                .map(s => escolas.find(e => String(e.id) === String(s.id)));
+                .map(s => escolas.find(e => Number(e.id) === Number(s.id)));
             
-            // Link corrigido sem caracteres extras
+            // Link do Google Maps Corrigido
             const waypoints = pontosDaRota.map(p => `${p.lat},${p.lng}`).join("/");
             const googleUrl = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${waypoints}/${pontoPartida.lat},${pontoPartida.lng}`;
 
@@ -270,7 +267,7 @@
 
     } catch (error) {
         console.error("Erro detalhado:", error);
-        alert("Falha na comunicação. Se o ponto estiver VERDE, tente clicar novamente em 5 segundos.");
+        alert("O servidor respondeu com erro. Verifique sua ORS_API_KEY no Render.");
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA';
