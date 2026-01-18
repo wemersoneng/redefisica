@@ -301,92 +301,17 @@ function gerarRotas() {
     return;
   }
 
-  const restantes = [...escolasSelecionadas];
-  const sementes = [];
+  // 1️⃣ Clusterização
+  let grupos = kMeans(escolasSelecionadas, numRotas);
 
-  // =========================
-  // FASE 1 — SEMENTES
-  // =========================
+  // 2️⃣ Limita tamanho (sem forçar enchimento)
+  grupos = grupos.map(g => g.slice(0, maxPorRota));
 
-  // Semente 1: mais distante da SEINFRA
-  sementes.push(
-    restantes.reduce((a, b) =>
-      distanciaKm(pontoPartida, a) > distanciaKm(pontoPartida, b) ? a : b
-    )
-  );
-
-  // Demais sementes
-  while (sementes.length < numRotas && sementes.length < restantes.length) {
-    let candidata = null;
-    let maiorDistancia = -Infinity;
-
-    restantes.forEach(e => {
-      if (sementes.includes(e)) return;
-
-      const distancias = sementes.map(s => distanciaKm(s, e));
-      distancias.push(distanciaKm(pontoPartida, e));
-
-      const distanciaMinima = Math.min(...distancias);
-
-      if (distanciaMinima > maiorDistancia) {
-        maiorDistancia = distanciaMinima;
-        candidata = e;
-      }
-    });
-
-    if (candidata) sementes.push(candidata);
-  }
-
-  // =========================
-  // FASE 2 — INICIALIZA ROTAS
-  // =========================
-
-  const rotas = sementes.map(s => [s]);
-
-  // remove sementes dos restantes
-  sementes.forEach(s => {
-    const i = restantes.findIndex(e => e.nome === s.nome);
-    if (i !== -1) restantes.splice(i, 1);
-  });
-
-  // =========================
-  // FASE 3 — DRAFT POR RODADAS
-  // =========================
-
-  let houveAlocacao = true;
-
-  while (restantes.length > 0 && houveAlocacao) {
-    houveAlocacao = false;
-
-    for (let i = 0; i < rotas.length; i++) {
-      const rota = rotas[i];
-      if (rota.length >= maxPorRota) continue;
-      if (restantes.length === 0) break;
-
-      let candidata = null;
-      let menorDistancia = Infinity;
-
-      restantes.forEach(e => {
-        const d = distanciaKm(sementes[i], e);
-        if (d < menorDistancia) {
-          menorDistancia = d;
-          candidata = e;
-        }
-      });
-
-      if (candidata) {
-        rota.push(candidata);
-        const idx = restantes.findIndex(e => e.nome === candidata.nome);
-        if (idx !== -1) restantes.splice(idx, 1);
-        houveAlocacao = true;
-      }
-    }
-  }
+  // 3️⃣ Ordena cada grupo (TSP)
+  const rotas = grupos.map(g => ordenarRota(pontoPartida, g));
 
   exibirRotas(rotas);
 }
-
-
 
   function distanciaTotalRota(escolas) {
   let total = 0;
@@ -433,6 +358,72 @@ function exibirRotas(rotas) {
 
   const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
   return R * c;
+}
+
+function kMeans(pontos, k, iteracoes = 8) {
+  // inicia centróides aleatórios
+  let centroides = pontos
+    .sort(() => 0.5 - Math.random())
+    .slice(0, k)
+    .map(p => ({ lat: p.lat, lng: p.lng }));
+
+  let grupos = [];
+
+  for (let it = 0; it < iteracoes; it++) {
+    grupos = Array.from({ length: k }, () => []);
+
+    // atribuição
+    pontos.forEach(p => {
+      let melhor = 0;
+      let menor = Infinity;
+
+      centroides.forEach((c, i) => {
+        const d = distanciaKm(c, p);
+        if (d < menor) {
+          menor = d;
+          melhor = i;
+        }
+      });
+
+      grupos[melhor].push(p);
+    });
+
+    // recalcula centróides
+    centroides = grupos.map(g => {
+      if (g.length === 0) return centroides[Math.floor(Math.random() * k)];
+
+      const lat = g.reduce((s, p) => s + p.lat, 0) / g.length;
+      const lng = g.reduce((s, p) => s + p.lng, 0) / g.length;
+      return { lat, lng };
+    });
+  }
+
+  return grupos;
+}
+
+function ordenarRota(pontoInicial, escolas) {
+  const rota = [];
+  let atual = pontoInicial;
+  let restantes = [...escolas];
+
+  while (restantes.length > 0) {
+    let proxima = null;
+    let menor = Infinity;
+
+    restantes.forEach(e => {
+      const d = distanciaKm(atual, e);
+      if (d < menor) {
+        menor = d;
+        proxima = e;
+      }
+    });
+
+    rota.push(proxima);
+    atual = proxima;
+    restantes = restantes.filter(e => e !== proxima);
+  }
+
+  return rota;
 }
 
   
