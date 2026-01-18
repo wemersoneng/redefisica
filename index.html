@@ -345,56 +345,88 @@ function criarIcone(e, sel = false, numero = null) {
         });
     });
 
-    async function gerarRotas() {
-        const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
-        const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
-        if(selecionadas.length === 0) return alert("Selecione os locais!");
-        
-        const btn = document.getElementById('btnGerar');
-        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OTIMIZANDO...';
-        polilinhas.forEach(p => map.removeLayer(p));
-        polilinhas = []; document.getElementById("container-rotas").innerHTML = "";
+async function gerarRotas() {
+    const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
+    const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
+    
+    // --- NOVA VERIFICAÇÃO DE CAPACIDADE ---
+    const capacidadeTotalFrota = nVeiculos * capVeiculo;
+    const totalSelecionadas = selecionadas.length;
 
-        try {
-            const r = await fetch("https://redefisica.onrender.com/rotas", {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({
-                    jobs: selecionadas.map(e => ({ id: Number(e.id), location: [e.lng, e.lat], amount: [1] })),
-                    vehicles: Array.from({length: nVeiculos}, (_, i) => ({
-                        id: i, profile: "driving-car", start:[pontoPartida.lng, pontoPartida.lat], end:[pontoPartida.lng, pontoPartida.lat], capacity:[capVeiculo]
-                    }))
-                })
-            });
-            const data = await r.json();
-            rotasAtivas = data.routes;
-
-            data.routes.forEach((rota, idx) => {
-                const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
-                const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
-                const card = document.createElement("div");
-                card.className = "rota-card"; card.id = `card-rota-${idx}`;
-                card.style.borderLeftColor = cor;
-                card.innerHTML = `
-                    <div class="rota-header" onclick="toggleFiltroRota(${idx}, this)">
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px">
-                            <span>EQUIPE ${idx+1}</span> <span>${(rota.distance/1000).toFixed(1)} km</span>
-                        </div>
-                        <small style="color:#666">${pts.length} vistorias</small>
-                    </div>
-                    <div class="rota-details">
-                        <ol style="padding-left:18px; font-size:12px; margin-bottom:10px">${pts.map(p => `<li>${p.nome}</li>`).join("")}</ol>
-                        <a href="https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR NO GPS</a>
-                    </div>`;
-                document.getElementById("container-rotas").appendChild(card);
-                if(rota.geometry) {
-                    const poly = L.polyline(decode(rota.geometry), {color:cor, weight:6});
-                    poly.addTo(map); polilinhas.push(poly);
-                }
-            });
-            if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
-        } catch(e) { alert("Erro de conexão."); }
-        finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA'; }
+    if (totalSelecionadas === 0) {
+        return alert("Selecione os locais antes de otimizar!");
     }
+
+    if (totalSelecionadas > capacidadeTotalFrota) {
+        return alert(`Frota insuficiente! 
+        \nVocê selecionou ${totalSelecionadas} unidades, mas sua frota atual suporta apenas ${capacidadeTotalFrota} vistorias.
+        \nAjuste o número de veículos ou a capacidade nas configurações.`);
+    }
+    // --------------------------------------
+
+    const btn = document.getElementById('btnGerar');
+    btn.disabled = true; 
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OTIMIZANDO...';
+    
+    polilinhas.forEach(p => map.removeLayer(p));
+    polilinhas = []; 
+    document.getElementById("container-rotas").innerHTML = "";
+
+    try {
+        const r = await fetch("https://redefisica.onrender.com/rotas", {
+            method: "POST", 
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+                jobs: selecionadas.map(e => ({ id: Number(e.id), location: [e.lng, e.lat], amount: [1] })),
+                vehicles: Array.from({length: nVeiculos}, (_, i) => ({
+                    id: i, 
+                    profile: "driving-car", 
+                    start:[pontoPartida.lng, pontoPartida.lat], 
+                    end:[pontoPartida.lng, pontoPartida.lat], 
+                    capacity:[capVeiculo]
+                }))
+            })
+        });
+        
+        const data = await r.json();
+        rotasAtivas = data.routes;
+
+        data.routes.forEach((rota, idx) => {
+            const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
+            const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
+            const card = document.createElement("div");
+            card.className = "rota-card"; 
+            card.id = `card-rota-${idx}`;
+            card.style.borderLeftColor = cor;
+            card.innerHTML = `
+                <div class="rota-header" onclick="toggleFiltroRota(${idx}, this)">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px">
+                        <span>EQUIPE ${idx+1}</span> <span>${(rota.distance/1000).toFixed(1)} km</span>
+                    </div>
+                    <small style="color:#666">${pts.length} vistorias</small>
+                </div>
+                <div class="rota-details">
+                    <ol style="padding-left:18px; font-size:12px; margin-bottom:10px">${pts.map(p => `<li>${p.nome}</li>`).join("")}</ol>
+                    <a href="https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR NO GPS</a>
+                </div>`;
+            document.getElementById("container-rotas").appendChild(card);
+            
+            if(rota.geometry) {
+                const poly = L.polyline(decode(rota.geometry), {color:cor, weight:6});
+                poly.addTo(map); 
+                polilinhas.push(poly);
+            }
+        });
+        
+        if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
+        
+    } catch(e) { 
+        alert("Erro de conexão com o servidor de rotas."); 
+    } finally { 
+        btn.disabled = false; 
+        btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA'; 
+    }
+}
 
     function toggleFiltroRota(idx, el) {
         const details = el.nextElementSibling;
