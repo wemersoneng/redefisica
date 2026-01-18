@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
-    <title>Rotas de Vistoria Pro - V10</title>
+    <title>Rotas de Vistoria Pro - V11</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -17,34 +17,30 @@
         #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; }
 
         /* Interface Superior */
-        .top-bar { position: absolute; top: 20px; left: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .top-bar { position: absolute; top: 20px; left: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         .row-search { display: flex; gap: 8px; pointer-events: auto; }
-        .search-box { flex: 1; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: relative; }
+        .search-box { flex: 1; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .search-input-wrapper { display: flex; align-items: center; padding: 0 12px; height: 45px; }
         .search-box input { border: none; outline: none; width: 100%; font-size: 15px; margin-left: 8px; }
+        
         .menu-btn { background: white; border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; pointer-events: auto; }
 
-        /* Filtros */
-        .filter-row { display: flex; gap: 6px; pointer-events: auto; overflow-x: auto; padding-bottom: 5px; }
-        .pill { background: white; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: bold; color: var(--gray); box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; white-space: nowrap; border: 1px solid transparent; }
+        /* Filtros Combinados */
+        .filter-container { display: flex; flex-direction: column; gap: 6px; pointer-events: auto; }
+        .filter-row { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+        .filter-row::-webkit-scrollbar { display: none; }
+        .pill { background: white; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; color: var(--gray); box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; white-space: nowrap; border: 1.5px solid transparent; }
         .pill.active { background: var(--dark); color: white; }
+        .pill.active-mod { border-color: var(--primary); color: var(--primary); }
 
         /* Drawer Lateral */
-        .drawer { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: white; z-index: 2000; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 5px 0 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .drawer { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: white; z-index: 2000; transition: 0.3s; box-shadow: 5px 0 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
         .drawer.open { left: 0; }
         .drawer-header { padding: 20px; background: var(--dark); color: white; display: flex; justify-content: space-between; align-items: center; }
         .drawer-content { flex: 1; overflow-y: auto; padding: 10px; }
         .drawer-group-title { font-size: 11px; font-weight: bold; color: var(--primary); text-transform: uppercase; padding: 15px 10px 5px; border-bottom: 1px solid #eee; }
-        .drawer-item { padding: 12px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; border-bottom: 1px solid #f9f9f9; }
-        .drawer-item.selected { background: #e8f0fe; color: var(--primary); font-weight: bold; }
-        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999; display: none; }
-        .drawer-overlay.active { display: block; }
-
-        /* Painel Inferior (Checklist) */
-        .selected-panel { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1001; background: white; border-radius: 20px 20px 0 0; transform: translateY(calc(100% - 60px)); transition: 0.3s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
-        .selected-panel.open { transform: translateY(0); }
-        .panel-header { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; cursor: pointer; border-bottom: 1px solid #eee; }
-        #lista-selecionadas { height: 250px; overflow-y: auto; padding: 10px 20px; }
+        .drawer-item { padding: 12px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; flex-direction: column; border-bottom: 1px solid #f9f9f9; }
+        .drawer-item.selected { background: #e8f0fe; border-left: 4px solid var(--primary); }
 
         /* Efeito Pulsante */
         @keyframes pulse-blue {
@@ -54,13 +50,21 @@
         }
         .marker-pulse { border-radius: 50%; animation: pulse-blue 2s infinite; }
 
-        /* Status Servidor */
-        #status-servidor { position: absolute; bottom: 75px; left: 20px; z-index: 1000; font-size: 10px; display: flex; align-items: center; gap: 5px; background: white; padding: 5px 10px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        #ponto-status { height: 7px; width: 7px; background: #bbb; border-radius: 50%; }
+        /* Painel Inferior */
+        .selected-panel { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1001; background: white; border-radius: 20px 20px 0 0; transform: translateY(calc(100% - 60px)); transition: 0.3s; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+        .selected-panel.open { transform: translateY(0); }
+        .panel-header { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; cursor: pointer; }
 
-        .fab-gerar { position: absolute; bottom: 80px; right: 20px; z-index: 1000; background: var(--success); color: white; border: none; padding: 0 25px; height: 50px; border-radius: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        /* Cards de Rota */
+        #container-rotas { position: absolute; top: 140px; left: 10px; right: 10px; z-index: 999; pointer-events: none; }
+        .rota-card { background: white; border-radius: 10px; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: auto; border-left: 5px solid var(--primary); overflow: hidden; }
+        .rota-header { padding: 12px; cursor: pointer; }
+        .rota-details { display: none; padding: 12px; border-top: 1px solid #eee; background: #fafafa; }
+        .rota-details.active { display: block; }
+
+        .fab-gerar { position: absolute; bottom: 80px; right: 20px; z-index: 1000; background: var(--success); color: white; border: none; padding: 0 25px; height: 50px; border-radius: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); font-weight: bold; display: flex; align-items: center; gap: 10px; }
         
-        .tag-mod { font-size: 9px; padding: 2px 5px; border-radius: 4px; margin-left: 5px; font-weight: bold; }
+        .tag-mod { font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase; margin-top: 4px; display: inline-block; width: fit-content; }
         .tag-integral { background: #e8f5e9; color: #2e7d32; }
         .tag-parcial { background: #fff3e0; color: #ef6c00; }
     </style>
@@ -70,7 +74,7 @@
     <div class="drawer-overlay" id="overlay" onclick="toggleDrawer()"></div>
     <div class="drawer" id="drawer">
         <div class="drawer-header">
-            <span>Unidades por Tipo</span>
+            <span style="font-weight:bold">Unidades Educacionais</span>
             <i class="fas fa-times" onclick="toggleDrawer()"></i>
         </div>
         <div class="drawer-content" id="drawer-list"></div>
@@ -82,27 +86,28 @@
             <div class="search-box">
                 <div class="search-input-wrapper">
                     <i class="fas fa-search" style="color:#888"></i>
-                    <input type="text" id="busca" placeholder="Pesquisar unidade...">
+                    <input type="text" id="busca" placeholder="Buscar por nome...">
                 </div>
             </div>
             <div class="menu-btn" onclick="toggleModal(true)"><i class="fas fa-cog"></i></div>
         </div>
-        <div class="filter-row">
-            <div class="pill active" onclick="filtrar('todos', this)">TODOS</div>
-            <div class="pill" onclick="filtrar('infantil', this)">INFANTIL</div>
-            <div class="pill" onclick="filtrar('fundamental', this)">FUNDAMENTAL</div>
-            <div class="pill" onclick="filtrar('mista', this)">MISTA</div>
-            <div class="pill" onclick="filtrar('equipamento', this)">EQUIPAMENTOS</div>
+        <div class="filter-container">
+            <div class="filter-row" id="row-tipos">
+                <div class="pill active" onclick="setFiltroTipo('todos', this)">TODOS</div>
+                <div class="pill" onclick="setFiltroTipo('infantil', this)">INFANTIL</div>
+                <div class="pill" onclick="setFiltroTipo('fundamental', this)">FUNDAMENTAL</div>
+                <div class="pill" onclick="setFiltroTipo('mista', this)">MISTA</div>
+                <div class="pill" onclick="setFiltroTipo('equipamento', this)">EQUIPAMENTOS</div>
+            </div>
+            <div class="filter-row" id="row-mods">
+                <div class="pill" onclick="setFiltroMod('integral', this)">INTEGRAL</div>
+                <div class="pill" onclick="setFiltroMod('parcial', this)">PARCIAL</div>
+            </div>
         </div>
     </div>
 
     <div id="map"></div>
-    <div id="container-rotas" style="position: absolute; top: 130px; left: 10px; right: 10px; z-index: 999; pointer-events: none;"></div>
-
-    <div id="status-servidor">
-        <div id="ponto-status"></div>
-        <span id="texto-status">Status</span>
-    </div>
+    <div id="container-rotas"></div>
 
     <button class="fab-gerar" onclick="gerarRotas()" id="btnGerar">
         <i class="fas fa-route"></i> OTIMIZAR AGORA
@@ -110,10 +115,10 @@
 
     <div class="selected-panel" id="panel">
         <div class="panel-header" onclick="togglePanel()">
-            <span style="font-weight: bold;">Checklist (<span id="badgeCount">0</span>)</span>
+            <span style="font-weight: bold;">Selecionados (<span id="badgeCount">0</span>)</span>
             <i class="fas fa-chevron-up"></i>
         </div>
-        <div id="lista-selecionadas"></div>
+        <div id="lista-selecionadas" style="height: 250px; overflow-y: auto; padding: 10px 20px;"></div>
     </div>
 
     <div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; align-items:center; justify-content:center;">
@@ -121,7 +126,7 @@
             <h3>Configuração</h3>
             <label style="font-size:11px;">VEÍCULOS</label>
             <input type="number" id="num-veiculos" value="2" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
-            <label style="font-size:11px;">MAX POR CARRO</label>
+            <label style="font-size:11px;">CAPACIDADE POR CARRO</label>
             <input type="number" id="max-por-veiculo" value="6" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
             <button onclick="toggleModal(false)" style="width:100%; background:var(--dark); color:white; padding:15px; border-radius:10px; border:none; font-weight:bold;">SALVAR</button>
         </div>
@@ -144,30 +149,29 @@
     let selecionadas = [];
     let marcadores = {};
     let polilinhas = [];
+    let filtroTipo = 'todos';
+    let filtroMod = 'todos';
 
     const map = L.map('map', { zoomControl: false }).setView([pontoPartida.lat, pontoPartida.lng], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
     function getCor(tipo) {
-        if(tipo === 'infantil') return '#00bcd4';
-        if(tipo === 'fundamental') return '#9c27b0';
-        if(tipo === 'mista') return '#ff9800';
-        return '#607d8b';
+        const cores = { infantil: '#00bcd4', fundamental: '#9c27b0', mista: '#ff9800', equipamento: '#607d8b' };
+        return cores[tipo] || '#1a73e8';
     }
 
     function criarIcone(e, sel = false) {
         const cor = getCor(e.tipo);
-        const pulseClass = sel ? 'marker-pulse' : '';
         return L.divIcon({
             className: '',
-            html: `<div class="${pulseClass}" style="background:${cor}; width:30px; height:300px; max-height:30px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3)">
+            html: `<div class="${sel?'marker-pulse':''}" style="background:${cor}; width:30px; height:30px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3)">
                     <i class="fas fa-school" style="transform:rotate(45deg); color:white; font-size:12px"></i>
                    </div>`,
             iconSize: [30, 30], iconAnchor: [15, 30]
         });
     }
 
-    // Inicialização
+    // Inicializar Marcadores
     L.marker([pontoPartida.lat, pontoPartida.lng], {icon: L.icon({iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", iconSize:[25,41]})}).addTo(map);
 
     escolas.forEach(e => {
@@ -190,17 +194,17 @@
     }
 
     function atualizarUI() {
-        // Badge e Lista Checklist
+        // Painel Inferior
         document.getElementById('badgeCount').innerText = selecionadas.length;
         const lista = document.getElementById('lista-selecionadas');
         lista.innerHTML = selecionadas.map(s => `
             <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee; align-items:center">
-                <div style="font-size:13px"><b>${s.nome}</b><br><small style="color:#888">${s.tipo}</small></div>
+                <div style="font-size:13px"><b>${s.nome}</b><br><small style="color:#888">${s.tipo} | ${s.modalidade}</small></div>
                 <i class="fas fa-trash-alt" style="color:var(--danger); padding:10px" onclick="removerPorId(${s.id})"></i>
             </div>
         `).join("");
 
-        // Drawer
+        // Drawer Agrupada
         const dContent = document.getElementById('drawer-list');
         dContent.innerHTML = "";
         const tipos = [...new Set(escolas.map(e => e.tipo))];
@@ -208,9 +212,10 @@
             const group = document.createElement('div');
             group.innerHTML = `<div class="drawer-group-title">${t}</div>`;
             escolas.filter(e => e.tipo === t).forEach(e => {
+                const isSel = selecionadas.find(s=>s.id===e.id);
                 const item = document.createElement('div');
-                item.className = `drawer-item ${selecionadas.find(s=>s.id===e.id)?'selected':''}`;
-                item.innerHTML = `<span>${e.nome}</span> <i class="fas ${selecionadas.find(s=>s.id===e.id)?'fa-check-circle':'fa-circle'}" style="opacity:0.3"></i>`;
+                item.className = `drawer-item ${isSel?'selected':''}`;
+                item.innerHTML = `<span>${e.nome}</span><span class="tag-mod tag-${e.modalidade}">${e.modalidade}</span>`;
                 item.onclick = () => { map.panTo([e.lat, e.lng]); alternar(e); };
                 group.appendChild(item);
             });
@@ -218,10 +223,49 @@
         });
     }
 
+    // Lógica de Busca e Filtros
+    function aplicarFiltros() {
+        const termo = document.getElementById('busca').value.toLowerCase();
+        escolas.forEach(e => {
+            const matchBusca = e.nome.toLowerCase().includes(termo);
+            const matchTipo = (filtroTipo === 'todos' || e.tipo === filtroTipo);
+            const matchMod = (filtroMod === 'todos' || e.modalidade === filtroMod);
+            
+            if (matchBusca && matchTipo && matchMod) {
+                marcadores[e.id].addTo(map);
+            } else {
+                map.removeLayer(marcadores[e.id]);
+            }
+        });
+        atualizarUI(); // Sincroniza a drawer com os filtros
+    }
+
+    document.getElementById('busca').addEventListener('input', aplicarFiltros);
+
+    function setFiltroTipo(t, el) {
+        document.querySelectorAll('#row-tipos .pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        filtroTipo = t;
+        aplicarFiltros();
+    }
+
+    function setFiltroMod(m, el) {
+        if (filtroMod === m) {
+            filtroMod = 'todos';
+            el.classList.remove('active-mod');
+        } else {
+            document.querySelectorAll('#row-mods .pill').forEach(p => p.classList.remove('active-mod'));
+            el.classList.add('active-mod');
+            filtroMod = m;
+        }
+        aplicarFiltros();
+    }
+
     async function gerarRotas() {
         if(selecionadas.length === 0) return alert("Selecione os pontos!");
         const btn = document.getElementById('btnGerar');
-        btn.disabled = true; btn.innerHTML = "CARREGANDO...";
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OTIMIZANDO...';
+        
         polilinhas.forEach(p => map.removeLayer(p));
         document.getElementById("container-rotas").innerHTML = "";
 
@@ -236,36 +280,42 @@
                 })
             });
             const data = await r.json();
+            
             data.routes.forEach((rota, idx) => {
                 const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
                 const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
+                
                 const card = document.createElement("div");
-                card.style = `background:white; border-radius:10px; margin-bottom:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); pointer-events:auto; border-left:5px solid ${cor}; padding:12px; font-size:12px`;
-                card.innerHTML = `<b>EQUIPE ${idx+1}</b> (${(rota.distance/1000).toFixed(1)}km)<br><small>${pts.length} paradas</small>
-                <a href="https://www.google.com/maps/dir/$${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:8px; border-radius:5px; text-decoration:none; margin-top:8px">ABRIR MAPS</a>`;
+                card.className = "rota-card";
+                card.style.borderLeftColor = cor;
+                card.innerHTML = `
+                    <div class="rota-header" onclick="this.nextElementSibling.classList.toggle('active')">
+                        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px">
+                            <span>EQUIPE ${idx+1}</span>
+                            <span>${(rota.distance/1000).toFixed(1)} km</span>
+                        </div>
+                        <small style="color:#666">${pts.length} paradas planejadas</small>
+                    </div>
+                    <div class="rota-details">
+                        <ul style="padding-left:18px; font-size:12px; margin-bottom:10px">
+                            ${pts.map(p => `<li>${p.nome} <small>(${p.modalidade})</small></li>`).join("")}
+                        </ul>
+                        <a href="https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR NO GPS</a>
+                    </div>
+                `;
                 document.getElementById("container-rotas").appendChild(card);
                 if(rota.geometry) polilinhas.push(L.polyline(decode(rota.geometry), {color:cor, weight:6}).addTo(map));
             });
-            map.fitBounds(new L.featureGroup(polilinhas).getBounds());
-        } catch(e) { alert("Erro ao gerar rotas."); }
+            if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
+        } catch(e) { alert("Erro ao conectar com servidor."); }
         finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA'; }
     }
 
+    // Auxiliares
     function removerPorId(id) { alternar(escolas.find(e => e.id === id)); }
     function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); document.getElementById('overlay').classList.toggle('active'); atualizarUI(); }
     function togglePanel() { document.getElementById('panel').classList.toggle('open'); }
     function toggleModal(s) { document.getElementById('modal').style.display = s ? 'flex' : 'none'; }
-    function filtrar(t, el) {
-        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-        el.classList.add('active');
-        escolas.forEach(e => (t === 'todos' || e.tipo === t) ? marcadores[e.id].addTo(map) : map.removeLayer(marcadores[e.id]));
-    }
-    
-    async function checkS() {
-        try { await fetch("https://redefisica.onrender.com/rotas"); document.getElementById('ponto-status').style.background = "#34a853"; } 
-        catch(e) { document.getElementById('ponto-status').style.background = "#ea4335"; setTimeout(checkS, 10000); }
-    }
-    checkS();
 
     function decode(str) {
         let index=0, lat=0, lng=0, coords=[], shift=0, result=0, byte=null, lat_c, lng_c;
@@ -277,6 +327,8 @@
             coords.push([lat/1e5, lng/1e5]);
         } return coords;
     }
+    
+    atualizarUI(); // Carga inicial da drawer
 </script>
 </body>
 </html>
