@@ -13,7 +13,7 @@
         #topo { padding:15px; background:#1f4fd8; color:white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         #contador { font-size:13px; opacity:0.9; display: block; margin-top: 4px; }
         #map { height:40vh; width: 100%; }
-        #painel { padding:15px; height: 60vh; overflow-y:auto; box-sizing: border-box; }
+        #painel { padding:15px; height: 60vh; overflow-y:auto; box-sizing: border-box; padding-bottom: 100px; }
         
         .secao { background: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         h3 { margin: 0 0 10px 0; font-size: 16px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; }
@@ -27,12 +27,12 @@
         .rota-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .rota-titulo { font-weight: bold; color: #1f4fd8; font-size: 14px; }
         
-        .btn-google { background: #4285F4; color: white; text-decoration: none; padding: 7px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .btn-google { background: #4285F4; color: white; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         
-        .lista-escolas-rota { margin: 8px 0 0 0; padding-left: 20px; font-size: 13px; color: #444; }
-        .lista-escolas-rota li { margin-bottom: 5px; }
+        .lista-escolas-rota { margin: 12px 0 0 0; padding-left: 20px; font-size: 14px; color: #333; }
+        .lista-escolas-rota li { margin-bottom: 8px; font-weight: 500; }
 
-        #gerar-rotas { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; }
+        #gerar-rotas { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; margin-bottom: 10px; }
         #gerar-rotas:disabled { background: #ccc; }
     </style>
 </head>
@@ -72,7 +72,6 @@
 <script>
 const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
 
-// Lista de escolas atualizada com IDs
 const escolas = [
     { id: 1, nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.29902763710780 },
     { id: 2, nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.33797808195100 },
@@ -128,7 +127,7 @@ function alternarEscola(e) {
 }
 
 function atualizarUI() {
-    document.getElementById("contador").textContent = `${escolasSelecionadas.length} escolas selecionadas`;
+    document.getElementById("contador").textContent = `${escolasSelecionadas.length} selecionadas`;
     const lista = document.getElementById("lista-escolas");
     lista.innerHTML = escolasSelecionadas.length ? "" : "<em>Nenhuma selecionada.</em>";
     escolasSelecionadas.forEach(e => {
@@ -141,7 +140,7 @@ function atualizarUI() {
 
 function removerPorId(id) {
     const escola = escolas.find(e => e.id === id);
-    alternarEscola(escola);
+    if(escola) alternarEscola(escola);
 }
 
 function atualizarBusca() {
@@ -159,7 +158,6 @@ function atualizarBusca() {
 }
 document.getElementById("busca").addEventListener("input", atualizarBusca);
 
-// Decodifica geometria para traçado nas ruas
 function decodePolyline(str) {
     let index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null, lat_change, lng_change;
     while (index < str.length) {
@@ -177,7 +175,7 @@ function decodePolyline(str) {
 async function gerarRotas() {
     if (!escolasSelecionadas.length) return alert("Selecione escolas!");
     const btn = document.getElementById("gerar-rotas");
-    btn.disabled = true; btn.textContent = "Calculando...";
+    btn.disabled = true; btn.textContent = "Otimizando Trajeto...";
     
     linhasRotas.forEach(l => map.removeLayer(l));
     linhasRotas = [];
@@ -202,15 +200,16 @@ async function gerarRotas() {
         data.routes.forEach((rota, i) => {
             const cor = `hsl(${(i * 137) % 360}, 70%, 45%)`;
             
-            // Lista ordenada de escolas nesta rota (Proteção contra undefined)
+            // CORREÇÃO: Usar s.id para identificar a escola
             const listaItens = rota.steps
                 .filter(s => s.type === "job")
                 .map(s => {
-                    const esc = escolas.find(e => e.id === Number(s.job_id));
-                    return esc ? `<li>${esc.nome}</li>` : `<li>Escola ID ${s.job_id} não encontrada</li>`;
+                    const esc = escolas.find(e => e.id === Number(s.id));
+                    return esc ? `<li>${esc.nome}</li>` : `<li>Escola não encontrada (ID: ${s.id})</li>`;
                 }).join("");
 
-            // Link Google Maps otimizado
+            // LINK GOOGLE MAPS CORRIGIDO PARA CELULAR
+            // Formato: /dir/lat,lng/lat,lng/...
             const coordsMap = rota.steps.map(s => `${s.location[1]},${s.location[0]}`);
             const urlGoogle = `https://www.google.com/maps/dir/${coordsMap.join("/")}`;
 
@@ -220,7 +219,7 @@ async function gerarRotas() {
             card.innerHTML = `
                 <div class="rota-header">
                     <span class="rota-titulo">ROTA ${i+1} (${(rota.distance/1000).toFixed(1)} km)</span>
-                    <a href="${urlGoogle}" target="_blank" class="btn-google">Abrir no GPS ↗</a>
+                    <a href="${urlGoogle}" target="_blank" class="btn-google">ABRIR NO GPS ↗</a>
                 </div>
                 <ol class="lista-escolas-rota">${listaItens}</ol>
             `;
@@ -235,7 +234,7 @@ async function gerarRotas() {
 
         if (linhasRotas.length) map.fitBounds(new L.featureGroup(linhasRotas).getBounds());
     } catch (err) {
-        alert("Erro na API. Verifique se o servidor no Render está ativo.");
+        alert("Erro no servidor. Tente novamente em instantes.");
         console.error(err);
     } finally {
         btn.disabled = false; btn.textContent = "Gerar Rotas Otimizadas";
