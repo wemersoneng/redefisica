@@ -2,9 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>ROTAS - REDE FÍSICA</title>
+  <title>Roteirização de Vistorias — Educação</title>
 
-  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -16,31 +15,39 @@
       padding: 0;
       height: 100%;
       font-family: Arial, sans-serif;
+      font-size: 16px; /* base maior */
     }
 
-    /* Barra superior */
     .top-bar {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      height: 50px;
+      height: 56px;
       background: #1f3c88;
       color: #fff;
       display: flex;
       align-items: center;
-      padding: 0 12px;
+      padding: 0 14px;
       z-index: 1000;
-      font-size: 14px;
     }
 
-    /* Mapa ocupa o resto da tela */
+    .top-bar strong {
+      font-size: 17px;
+    }
+
     #map {
       position: absolute;
-      top: 50px;
+      top: 56px;
       bottom: 0;
       left: 0;
       right: 0;
+    }
+
+    /* Popups maiores */
+    .leaflet-popup-content {
+      font-size: 15px;
+      line-height: 1.4;
     }
   </style>
 </head>
@@ -52,12 +59,30 @@
 
   <div id="map"></div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     // ===============================
-    // PONTO DE PARTIDA — SEINFRA
+    // ÍCONES PERSONALIZADOS
+    // ===============================
+    const iconeEscola = L.icon({
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34]
+    });
+
+    const iconeSeinfra = L.icon({
+      iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34]
+    });
+
+    // ===============================
+    // DADOS
     // ===============================
     const pontoInicial = {
       nome: "SEINFRA – Secretaria de Infraestrutura",
@@ -65,9 +90,6 @@
       lng: -39.31536456230205
     };
 
-    // ===============================
-    // LISTA DE ESCOLAS
-    // ===============================
     const escolas = [
       { nome: "ALAYDE OLIVEIRA DE ANDRADE CEI", lat: -7.22591062068273, lng: -39.2990276371078 },
       { nome: "HELENA VIEIRA DOS SANTOS EMEI", lat: -7.21989883926041, lng: -39.337978081951 },
@@ -103,14 +125,14 @@
       attribution: "&copy; OpenStreetMap"
     }).addTo(map);
 
-    // Ponto inicial
-    L.marker([pontoInicial.lat, pontoInicial.lng])
+    // SEINFRA
+    L.marker([pontoInicial.lat, pontoInicial.lng], { icon: iconeSeinfra })
       .addTo(map)
-      .bindPopup("<strong>SEINFRA</strong><br>Ponto inicial");
+      .bindPopup("<strong>SEINFRA</strong><br>Ponto inicial das rotas");
 
-    // Escolas
+    // ESCOLAS
     escolas.forEach(e => {
-      L.marker([e.lat, e.lng])
+      L.marker([e.lat, e.lng], { icon: iconeEscola })
         .addTo(map)
         .bindPopup(`<strong>${e.nome}</strong>`);
     });
