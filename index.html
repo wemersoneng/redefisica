@@ -34,7 +34,7 @@
         .drawer.open { left: 0; }
         .drawer-header { padding: 20px; background: var(--dark); color: white; display: flex; justify-content: space-between; align-items: center; }
         .drawer-content { flex: 1; overflow-y: auto; padding: 10px; }
-        .drawer-group-title { font-size: 11px; font-weight: bold; color: var(--primary); text-transform: uppercase; padding: 15px 10px 5px; border-bottom: 1px solid #eee; }
+        .drawer-group-title { font-size: 11px; font-weight: bold; color: var(--primary); text-transform: uppercase; padding: 15px 10px 5px; border-bottom: 1px solid #eee; background: #f8f9fa; }
         .drawer-item { padding: 12px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; flex-direction: column; border-bottom: 1px solid #f9f9f9; }
         .drawer-item.selected { background: #e8f0fe; border-left: 4px solid var(--primary); }
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999; display: none; }
@@ -110,9 +110,6 @@
     </div>
 
 <script>
-    // ==========================================
-    // 1. LISTA ORGANIZADA (SEM ID MANUAL)
-    // ==========================================
     const escolasDadosBrutos = [
         { nome: "ESCOLA 001", lat: -7.225911, lng: -39.299028, tipo: "infantil", modalidade: "integral" },
         { nome: "ESCOLA 002", lat: -7.219899, lng: -39.337978, tipo: "infantil", modalidade: "parcial" },
@@ -216,12 +213,8 @@
         { nome: "ESCOLA 100", lat: -7.267000, lng: -39.315000, tipo: "infantil", modalidade: "parcial" }
     ];
 
-    // Auto-ID: O sistema gera o ID sozinho a partir da ordem da lista acima
     const escolas = escolasDadosBrutos.map((e, i) => ({ id: i + 1, ...e }));
 
-    // ==========================================
-    // 2. CONFIGURAÇÕES E LÓGICA
-    // ==========================================
     const pontoPartida = { nome:"SEINFRA", lat:-7.194722, lng:-39.315364 };
     let selecionadas = [], marcadores = {}, polilinhas = [], filtroTipo = 'todos', filtroMod = 'todos', rotasAtivas = [];
 
@@ -243,18 +236,17 @@
 
     L.marker([pontoPartida.lat, pontoPartida.lng], {icon: L.icon({iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", iconSize:[25,41]})}).addTo(map);
 
-escolas.forEach(e => {
-    const m = L.marker([e.lat, e.lng], { icon: criarIcone(e) }).addTo(map);
-    
-    // Adiciona o popup com Nome e Tipo
-    m.bindPopup(`<b>${e.nome}</b><br><small>Tipo: ${e.tipo.toUpperCase()}</small>`);
-    
-    m.on('click', () => {
-        alternar(e);
-        m.openPopup(); // Abre o popup ao clicar
-    });
-    marcadores[e.id] = m;
-});
+    escolas.forEach(e => {
+        const m = L.marker([e.lat, e.lng], { icon: criarIcone(e) }).addTo(map);
+        
+        // Adição do Popup
+        m.bindPopup(`<b>${e.nome}</b><br><small>Tipo: ${e.tipo.toUpperCase()}</small>`);
+        
+        m.on('click', () => {
+            alternar(e);
+            m.openPopup();
+        });
+        marcadores[e.id] = m;
     });
 
     function alternar(e) {
@@ -264,49 +256,37 @@ escolas.forEach(e => {
         atualizarUI();
     }
 
-function atualizarUI() {
-    // Atualiza o contador do Checklist
-    document.getElementById('badgeCount').innerText = selecionadas.length;
-    
-    // Atualiza a lista de selecionadas (painel inferior)
-    document.getElementById('lista-selecionadas').innerHTML = selecionadas.map(s => `
-        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee; align-items:center">
-            <div style="font-size:13px"><b>${s.nome}</b><br><small>${s.tipo}</small></div>
-            <i class="fas fa-trash-alt" style="color:var(--danger); padding:10px" onclick="removerPorId(${s.id})"></i>
-        </div>`).join("");
+    function atualizarUI() {
+        document.getElementById('badgeCount').innerText = selecionadas.length;
+        document.getElementById('lista-selecionadas').innerHTML = selecionadas.map(s => `
+            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee; align-items:center">
+                <div style="font-size:13px"><b>${s.nome}</b><br><small>${s.tipo}</small></div>
+                <i class="fas fa-trash-alt" style="color:var(--danger); padding:10px" onclick="removerPorId(${s.id})"></i>
+            </div>`).join("");
 
-    // Atualiza a Drawer Lateral agrupada por tipo
-    const dContent = document.getElementById('drawer-list');
-    dContent.innerHTML = ""; // Limpa a lista atual
-
-    const tipos = ["infantil", "fundamental", "mista", "equipamento"];
-    
-    tipos.forEach(t => {
-        const listaEsc = escolas.filter(e => e.tipo === t);
-        
-        if(listaEsc.length > 0) {
+        const dContent = document.getElementById('drawer-list');
+        dContent.innerHTML = "";
+        ["infantil", "fundamental", "mista", "equipamento"].forEach(t => {
             const grupoContainer = document.createElement('div');
-            grupoContainer.innerHTML = `<div class="drawer-group-title">${t.toUpperCase()}</div>`;
-            
-            listaEsc.forEach(e => {
-                const isSel = selecionadas.find(s => s.id === e.id);
-                const item = document.createElement('div');
-                item.className = `drawer-item ${isSel ? 'selected' : ''}`;
-                item.innerHTML = `
-                    <span>${e.nome}</span>
-                    <span class="tag-mod tag-${e.modalidade}">${e.modalidade}</span>
-                `;
-                item.onclick = () => { 
-                    map.setView([e.lat, e.lng], 16); 
-                    alternar(e); 
-                    marcadores[e.id].openPopup();
-                };
-                grupoContainer.appendChild(item);
-            });
-            dContent.appendChild(grupoContainer);
-        }
-    });
-}
+            const listaEsc = escolas.filter(e => e.tipo === t);
+            if(listaEsc.length > 0) {
+                grupoContainer.innerHTML = `<div class="drawer-group-title">${t.toUpperCase()}</div>`;
+                listaEsc.forEach(e => {
+                    const isSel = selecionadas.find(s=>s.id===e.id);
+                    const item = document.createElement('div');
+                    item.className = `drawer-item ${isSel?'selected':''}`;
+                    item.innerHTML = `<span>${e.nome}</span><span class="tag-mod tag-${e.modalidade}">${e.modalidade}</span>`;
+                    item.onclick = () => { 
+                        map.setView([e.lat, e.lng], 16); 
+                        alternar(e); 
+                        marcadores[e.id].openPopup();
+                    };
+                    grupoContainer.appendChild(item);
+                });
+                dContent.appendChild(grupoContainer);
+            }
+        });
+    }
 
     document.getElementById('busca').addEventListener('input', function(e) {
         const t = e.target.value.toLowerCase();
@@ -319,6 +299,7 @@ function atualizarUI() {
             i.onclick = () => {
                 map.setView([esc.lat, esc.lng], 16);
                 if(!selecionadas.find(s=>s.id===esc.id)) alternar(esc);
+                marcadores[esc.id].openPopup();
                 e.target.value = ""; lista.innerHTML = "";
             };
             lista.appendChild(i);
