@@ -51,9 +51,9 @@
     <div class="top-bar">
         <div class="row-search">
             <div class="search-box">
-                <i class="fas fa-search" style="color:#999"></i>
-                <input type="text" id="busca" placeholder="Filtrar por nome...">
-            </div>
+    <input type="text" id="busca" placeholder="Pesquisar escola...">
+    <div id="lista-pesquisa" class="resultados-busca"></div>
+</div>
             <div class="settings-btn" onclick="toggleModal(true)"><i class="fas fa-cog"></i></div>
         </div>
         <div class="filter-bar">
@@ -92,6 +92,61 @@
     </div>
 
 <script>
+
+    // Lógica de Busca em Tempo Real com Lista de Sugestões
+const inputBusca = document.getElementById('busca');
+const listaResultados = document.getElementById('lista-pesquisa'); // Certifique-se de ter este ID no HTML
+
+inputBusca.addEventListener('input', function(e) {
+    const termo = e.target.value.toLowerCase();
+    
+    // Limpa a lista visual se o campo estiver vazio
+    if (termo.length === 0) {
+        listaResultados.innerHTML = "";
+        // Opcional: Mostrar todos os marcadores novamente
+        escolas.forEach(esc => marcadores[esc.id].addTo(map));
+        return;
+    }
+
+    let htmlLista = "";
+
+    escolas.forEach(esc => {
+        const corresponde = esc.nome.toLowerCase().includes(termo);
+        
+        // Filtro no Mapa
+        if (corresponde) {
+            marcadores[esc.id].addTo(map);
+            
+            // Filtro na Lista Visual (UX)
+            htmlLista += `
+                <div class="item-busca" onclick="selecionarDaBusca(${esc.id})">
+                    <i class="fas ${getEstilo(esc.tipo).icone}"></i>
+                    <span>${esc.nome}</span>
+                </div>
+            `;
+        } else {
+            map.removeLayer(marcadores[esc.id]);
+        }
+    });
+
+    listaResultados.innerHTML = htmlLista;
+});
+
+// Função para quando clicar no item da lista
+function selecionarDaBusca(id) {
+    const escola = escolas.find(e => e.id === id);
+    
+    // 1. Centraliza o mapa na escola
+    map.setView([escola.lat, escola.lng], 16);
+    
+    // 2. Abre o popup ou seleciona
+    alternar(escola); 
+    
+    // 3. Limpa a busca
+    inputBusca.value = "";
+    listaResultados.innerHTML = "";
+}
+    
     const pontoPartida = { nome:"SEINFRA", lat:-7.194722139209482, lng:-39.31536456230205 };
     
     // Dados atualizados com as novas categorias
