@@ -28,7 +28,7 @@
 
 <div id="topo">
     <strong>
-        Roteirização de Vistorias<br>
+        Roteirização de Vistorias - HUEHUE<br>
         <span id="contador">0 escolas selecionadas</span>
     </strong>
 </div>
@@ -208,40 +208,72 @@ async function gerarRotas() {
         }
 
         data.routes.forEach((rota, i) => {
-            const rotaElement = document.createElement("div"); 
-            rotaElement.className = "rota-item";
+    const rotaElement = document.createElement("div"); 
+    rotaElement.className = "rota-item";
 
-            // Filtra os pontos que são escolas
-            const schoolsInRoute = rota.steps
-                .filter(s => s.type === "job")
-                .map(s => escolasSelecionadas.find(e => e.id === s.job_id));
+    const schoolsInRoute = rota.steps
+        .filter(s => s.type === "job")
+        .map(s => escolasSelecionadas.find(e => e.id === s.job_id));
 
-            const totalKm = (rota.distance / 1000).toFixed(2);
-            const cor = `hsl(${(i * 140) % 360}, 70%, 50%)`;
+    const totalKm = (rota.distance / 1000).toFixed(2);
+    const cor = `hsl(${(i * 140) % 360}, 70%, 50%)`;
 
-            rotaElement.style.borderLeftColor = cor;
-            rotaElement.innerHTML = `<span>Rota ${i + 1} (${totalKm} km)</span>`;
+    // --- GERAR LINK DO GOOGLE MAPS ---
+    // O link precisa: Ponto de Partida -> Escolas em Ordem -> Ponto de Destino
+    const coordsGoogle = rota.steps.map(s => `${s.location[1]},${s.location[0]}`);
+    const origin = coordsGoogle[0];
+    const destination = coordsGoogle[coordsGoogle.length - 1];
+    const waypoints = coordsGoogle.slice(1, -1).join('|');
+    const linkGoogleMaps = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
 
-            schoolsInRoute.forEach(e => {
-                if(e) {
-                    const s = document.createElement("small");
-                    s.style.display = "block";
-                    s.textContent = "• " + e.nome;
-                    rotaElement.appendChild(s);
-                }
-            });
+    rotaElement.style.borderLeftColor = cor;
+    rotaElement.innerHTML = `
+        <span>Rota ${i + 1} (${totalKm} km)</span>
+        <a href="${linkGoogleMaps}" target="_blank" style="color: #1f4fd8; font-size: 12px; text-decoration: none; font-weight: bold; margin-bottom: 8px; display: block;">
+            👉 Abrir no Google Maps
+        </a>
+    `;
 
-            // Desenha a linha no mapa se houver geometria
-            if (rota.geometry) {
-                // O ORS retorna geometria codificada ou coordenadas. 
-                // Assumindo que o server retorna as coordenadas em steps:
-                const coords = rota.steps.map(s => [s.location[1], s.location[0]]);
-                const poly = L.polyline(coords, {color: cor, weight: 5, opacity: 0.7}).addTo(map);
-                linhasRotas.push(poly);
-            }
+    schoolsInRoute.forEach(e => {
+        if(e) {
+            const s = document.createElement("small");
+            s.style.display = "block";
+            s.textContent = "• " + e.nome;
+            rotaElement.appendChild(s);
+        }
+    });
 
-            container.appendChild(rotaElement);
-        });
+    // --- DESENHAR TRAÇADO PELAS RUAS ---
+    // A API ORS retorna a geometria em formato "Encoded Polyline" quando g:true
+    // Precisamos decodificar ou usar as coordenadas detalhadas da geometria
+    if (rota.geometry) {
+        // Opção A: Se a API retornar geometria formatada (Polyline)
+        // Você pode usar o helper L.Polyline.fromEncoded(rota.geometry) se tiver o plugin
+        // Opção B: Usar o traçado que a API devolve (se configurado no ORS)
+        const polylineCoords = decodePolyline(rota.geometry); // Função auxiliar abaixo
+        const poly = L.polyline(polylineCoords, {color: cor, weight: 5, opacity: 0.7}).addTo(map);
+        linhasRotas.push(poly);
+    }
+
+    container.appendChild(rotaElement);
+});
+
+
+        // Decodifica a geometria da API para coordenadas que o Leaflet entende
+function decodePolyline(str, precision = 5) {
+    let index = 0, lat = 0, lng = 0, coordinates = [], shift = 0, result = 0, byte = null, lat_change, lng_change, factor = Math.pow(10, precision);
+    while (index < str.length) {
+        byte = null; shift = 0; result = 0;
+        do { byte = str.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
+        lat_change = ((result & 1) ? ~(result >> 1) : (result >> 1)); lat += lat_change;
+        byte = null; shift = 0; result = 0;
+        do { byte = str.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
+        lng_change = ((result & 1) ? ~(result >> 1) : (result >> 1)); lng += lng_change;
+        coordinates.push([lat / factor, lng / factor]);
+    }
+    return coordinates;
+}
+        
 
         // Ajusta o mapa para ver tudo
         if(linhasRotas.length > 0) {
