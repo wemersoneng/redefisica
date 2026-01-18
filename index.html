@@ -54,7 +54,11 @@
 <body>
 
   <div class="top-bar">
-    <strong>Roteirização de Vistorias — Educação</strong>
+    <strong>
+  Roteirização de Vistorias — Educação<br>
+  <span id="contador">0 escolas selecionadas</span>
+</strong>
+
   </div>
 
   <div id="map"></div>
@@ -79,6 +83,15 @@
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34]
+
+    const iconeSelecionado = L.icon({
+      iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34]
+});
+
     });
 
     // ===============================
@@ -116,6 +129,8 @@
     // ===============================
     // MAPA
     // ===============================
+    const escolasSelecionadas = [];
+
     const map = L.map("map").setView(
       [pontoInicial.lat, pontoInicial.lng],
       13
@@ -131,10 +146,40 @@
       .bindPopup("<strong>SEINFRA</strong><br>Ponto inicial das rotas");
 
     // ESCOLAS
-    escolas.forEach(e => {
-      L.marker([e.lat, e.lng], { icon: iconeEscola })
-        .addTo(map)
-        .bindPopup(`<strong>${e.nome}</strong>`);
+escolas.forEach(e => {
+
+  const marcador = L.marker([e.lat, e.lng], { icon: iconeEscola })
+    .addTo(map)
+    .bindPopup(`<strong>${e.nome}</strong><br>Toque para selecionar`);
+
+  marcador.selecionado = false;
+
+  marcador.on("click", () => {
+    if (!marcador.selecionado) {
+      marcador.setIcon(iconeSelecionado);
+      marcador.selecionado = true;
+      escolasSelecionadas.push(e);
+    } else {
+      marcador.setIcon(iconeEscola);
+      marcador.selecionado = false;
+
+      const index = escolasSelecionadas.findIndex(
+        x => x.nome === e.nome
+      );
+      if (index !== -1) {
+        escolasSelecionadas.splice(index, 1);
+      }
+    }
+
+    atualizarContador();
+  });
+});
+
+    function atualizarContador() {
+      const el = document.getElementById("contador");
+      el.textContent = `${escolasSelecionadas.length} escolas selecionadas`;
+}
+
     });
   </script>
 
