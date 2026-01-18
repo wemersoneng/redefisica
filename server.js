@@ -1,6 +1,6 @@
 // server.js
 import express from "express";
-import fetch from "node-fetch";
+import fetch from "node-fetch"; // Node 18+ já tem fetch, mas garante compatibilidade
 import cors from "cors";
 
 const app = express();
@@ -9,33 +9,46 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Endpoint que o front-end chama
+// Endpoint para gerar rotas
 app.post("/rotas", async (req, res) => {
-  const payload = req.body;
-
   try {
-    const response = await fetch("https://api.openrouteservice.org/optimization", {
+    const ORS_API_KEY = process.env.ORS_API_KEY;
+    if (!ORS_API_KEY) return res.status(500).json({ error: "ORS_API_KEY não configurada" });
+
+    const { jobs, vehicles } = req.body;
+
+    if (!jobs || !vehicles) return res.status(400).json({ error: "jobs ou vehicles ausentes" });
+
+    // Monta payload para ORS Optimization API
+    const payload = {
+      jobs,
+      vehicles,
+      options: {
+        g: true // retorna geometria para highlight no mapa
+      }
+    };
+
+    const resp = await fetch("https://api.openrouteservice.org/optimization", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": process.env.ORS_API_KEY // <--- coloque a chave no Render Environment
+        "Authorization": ORS_API_KEY
       },
       body: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      return res.status(response.status).send({ error: text });
-    }
+    const data = await resp.json();
 
-    const data = await response.json();
-    res.json(data);
+    // ORS às vezes retorna sucesso sem rotas
+    if (data.error) return res.status(500).json({ error: data.error });
+
+    res.json(data); // envia todo o JSON de volta para o front-end
   } catch (err) {
-    console.error(err);
+    console.error("Erro na comunicação com ORS:", err);
     res.status(500).json({ error: "Erro na comunicação com a API" });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Server rodando na porta ${PORT}`);
 });
