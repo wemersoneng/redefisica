@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
-    <title>Rotas de Vistoria Pro - V14 Final</title>
+    <title>Rotas de Vistoria Pro - V16 Final</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -16,6 +16,18 @@
         
         #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; }
 
+        /* Status do Servidor */
+        .server-status {
+            position: absolute; bottom: 70px; left: 15px; z-index: 1000;
+            background: white; padding: 5px 10px; border-radius: 15px;
+            display: flex; align-items: center; gap: 6px;
+            font-size: 10px; font-weight: bold; color: var(--gray);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            pointer-events: none;
+        }
+        #ponto-status { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+
+        /* Interface Superior */
         .top-bar { position: absolute; top: 20px; left: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         .row-search { display: flex; gap: 8px; pointer-events: auto; }
         .search-box { flex: 1; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: relative; }
@@ -29,7 +41,6 @@
             max-height: 250px; overflow-y: auto; z-index: 1100;
         }
         .item-busca { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; }
-
         .menu-btn { background: white; border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; pointer-events: auto; }
 
         .filter-container { display: flex; flex-direction: column; gap: 6px; pointer-events: auto; }
@@ -58,7 +69,7 @@
         .panel-header { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; cursor: pointer; }
 
         #container-rotas { position: absolute; top: 145px; left: 10px; right: 10px; z-index: 999; pointer-events: none; }
-        .rota-card { background: white; border-radius: 10px; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: auto; border-left: 5px solid var(--primary); overflow: hidden; transition: 0.2s; }
+        .rota-card { background: white; border-radius: 10px; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: auto; border-left: 5px solid var(--primary); overflow: hidden; }
         .rota-header { padding: 12px; cursor: pointer; }
         .rota-details { display: none; padding: 12px; border-top: 1px solid #eee; background: #fafafa; }
         .rota-details.active { display: block; }
@@ -71,6 +82,11 @@
     </style>
 </head>
 <body>
+
+    <div class="server-status">
+        <div id="ponto-status"></div>
+        <span>SERVER ENGINE</span>
+    </div>
 
     <div class="drawer-overlay" id="overlay" onclick="toggleDrawer()"></div>
     <div class="drawer" id="drawer">
@@ -152,11 +168,16 @@
 
     function getCor(tipo) { return { infantil: '#00bcd4', fundamental: '#9c27b0', mista: '#ff9800', equipamento: '#607d8b' }[tipo] || '#1a73e8'; }
 
-    function criarIcone(e, sel = false) {
+    // Ícone que aceita número opcional
+    function criarIcone(e, sel = false, numero = null) {
+        const conteudo = numero !== null 
+            ? `<span style="transform:rotate(45deg); color:white; font-weight:bold; font-size:14px">${numero}</span>`
+            : `<i class="fas fa-school" style="transform:rotate(45deg); color:white; font-size:12px"></i>`;
+            
         return L.divIcon({
             className: '',
             html: `<div class="${sel?'marker-pulse':''}" style="background:${getCor(e.tipo)}; width:30px; height:30px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3)">
-                    <i class="fas fa-school" style="transform:rotate(45deg); color:white; font-size:12px"></i>
+                    ${conteudo}
                    </div>`,
             iconSize: [30, 30], iconAnchor: [15, 30]
         });
@@ -205,27 +226,35 @@
         });
     }
 
-    // BUSCA COM RESET AUTOMÁTICO
     document.getElementById('busca').addEventListener('input', function(e) {
         const t = e.target.value.toLowerCase();
         const lista = document.getElementById('lista-pesquisa');
         lista.innerHTML = "";
         if (t.length < 1) { aplicarFiltrosFixos(); return; }
-
         escolas.filter(esc => esc.nome.toLowerCase().includes(t)).forEach(esc => {
             const i = document.createElement('div'); i.className = 'item-busca';
             i.innerHTML = `<i class="fas fa-search"></i><span>${esc.nome}</span>`;
             i.onclick = () => {
                 map.setView([esc.lat, esc.lng], 16);
                 if(!selecionadas.find(s=>s.id===esc.id)) alternar(esc);
-                // RESET DA BUSCA
                 e.target.value = "";
                 lista.innerHTML = "";
-                aplicarFiltrosFixos(); // Volta a mostrar todos os marcadores
+                aplicarFiltrosFixos(); 
             };
             lista.appendChild(i);
         });
     });
+
+    async function checkS() {
+        try { 
+            await fetch("https://redefisica.onrender.com/rotas", { method: 'HEAD' }); 
+            document.getElementById('ponto-status').style.background = "#34a853"; 
+        } catch(e) { 
+            document.getElementById('ponto-status').style.background = "#ea4335"; 
+            setTimeout(checkS, 10000); 
+        }
+    }
+    checkS();
 
     async function gerarRotas() {
         const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
@@ -233,11 +262,7 @@
         const totalCapacidade = nVeiculos * capVeiculo;
 
         if(selecionadas.length === 0) return alert("Selecione os locais no mapa primeiro!");
-        
-        // VALIDAÇÃO DE CAPACIDADE
-        if(selecionadas.length > totalCapacidade) {
-            return alert(`Capacidade Insuficiente!\n\nVocê selecionou ${selecionadas.length} locais, mas sua frota só suporta ${totalCapacidade}.\n\nSugestão: Adicione mais veículos ou aumente a capacidade no ícone de engrenagem.`);
-        }
+        if(selecionadas.length > totalCapacidade) return alert(`Capacidade Insuficiente! Suporta ${totalCapacidade}.`);
 
         const btn = document.getElementById('btnGerar');
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OTIMIZANDO...';
@@ -271,10 +296,10 @@
                         <small style="color:#666">${pts.length} vistorias planejadas</small>
                     </div>
                     <div class="rota-details">
-                        <ul style="padding-left:18px; font-size:12px; margin-bottom:10px">
+                        <ol style="padding-left:18px; font-size:12px; margin-bottom:10px">
                             ${pts.map(p => `<li>${p.nome}</li>`).join("")}
-                        </ul>
-                        <a href="https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR ROTEIRO NO GPS</a>
+                        </ol>
+                        <a href="https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR NO GPS</a>
                     </div>`;
                 document.getElementById("container-rotas").appendChild(card);
                 if(rota.geometry) polilinhas.push(L.polyline(decode(rota.geometry), {color:cor, weight:6}).addTo(map));
@@ -284,25 +309,35 @@
         finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA'; }
     }
 
-    // FILTRO DINÂMICO POR ROTA AO CLICAR NO CARD
     function toggleFiltroRota(idx, el) {
         const details = el.nextElementSibling;
         const isActive = details.classList.contains('active');
         
-        // Reset de todos os cards e marcadores
+        // Reset geral
         document.querySelectorAll('.rota-details').forEach(d => d.classList.remove('active'));
+        escolas.forEach(e => {
+            const isSel = selecionadas.find(s=>s.id===e.id);
+            marcadores[e.id].setIcon(criarIcone(e, isSel));
+        });
         aplicarFiltrosFixos();
 
         if (!isActive) {
             details.classList.add('active');
-            const idsRota = rotasAtivas[idx].steps.filter(s => s.type === "job").map(s => Number(s.id));
-            
-            // Esconde quem não é da rota
+            const steps = rotasAtivas[idx].steps.filter(s => s.type === "job");
+            const idsRota = steps.map(s => Number(s.id));
+
+            // Esconde quem não é da rota e numera quem é
             escolas.forEach(e => {
-                if(!idsRota.includes(e.id)) map.removeLayer(marcadores[e.id]);
+                const ordem = idsRota.indexOf(e.id);
+                if(ordem === -1) {
+                    map.removeLayer(marcadores[e.id]);
+                } else {
+                    // Atualiza o ícone com o número da sequência (ordem + 1)
+                    marcadores[e.id].setIcon(criarIcone(e, true, ordem + 1));
+                    marcadores[e.id].addTo(map);
+                }
             });
             
-            // Foca no grupo da rota
             const grupoRota = L.featureGroup(idsRota.map(id => marcadores[id]));
             map.fitBounds(grupoRota.getBounds(), {padding: [80,80]});
         }
@@ -310,16 +345,12 @@
 
     function setFiltroTipo(t, el) {
         document.querySelectorAll('#row-tipos .pill').forEach(p => p.classList.remove('active'));
-        el.classList.add('active');
-        filtroTipo = t; aplicarFiltrosFixos();
+        el.classList.add('active'); filtroTipo = t; aplicarFiltrosFixos();
     }
 
     function setFiltroMod(m, el) {
         if (filtroMod === m) { filtroMod = 'todos'; el.classList.remove('active-mod'); } 
-        else { 
-            document.querySelectorAll('#row-mods .pill').forEach(p => p.classList.remove('active-mod'));
-            el.classList.add('active-mod'); filtroMod = m;
-        }
+        else { document.querySelectorAll('#row-mods .pill').forEach(p => p.classList.remove('active-mod')); el.classList.add('active-mod'); filtroMod = m; }
         aplicarFiltrosFixos();
     }
 
