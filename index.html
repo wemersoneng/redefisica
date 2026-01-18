@@ -290,7 +290,7 @@
       });
   }
   
-  function gerarRotas() {
+function gerarRotas() {
   const numRotas = parseInt(document.getElementById("numRotas").value);
   const maxPorRota = parseInt(document.getElementById("maxPorRota").value);
 
@@ -301,36 +301,91 @@
     return;
   }
 
-  // Cópia de trabalho
-  let restantes = [...escolasSelecionadas];
-  let rotas = [];
+  const restantes = [...escolasSelecionadas];
+  const sementes = [];
 
-  for (let r = 0; r < numRotas && restantes.length > 0; r++) {
-    // 1️⃣ escolhe uma escola base (a mais distante do ponto de partida)
-    let base = restantes.reduce((maisDistante, atual) => {
-      const dAtual = distanciaKm(pontoPartida, atual);
-      const dMais = distanciaKm(pontoPartida, maisDistante);
-      return dAtual > dMais ? atual : maisDistante;
+  // =========================
+  // FASE 1 — SEMENTES
+  // =========================
+
+  // Semente 1: mais distante da SEINFRA
+  sementes.push(
+    restantes.reduce((a, b) =>
+      distanciaKm(pontoPartida, a) > distanciaKm(pontoPartida, b) ? a : b
+    )
+  );
+
+  // Demais sementes
+  while (sementes.length < numRotas && sementes.length < restantes.length) {
+    let candidata = null;
+    let maiorDistancia = -Infinity;
+
+    restantes.forEach(e => {
+      if (sementes.includes(e)) return;
+
+      const distancias = sementes.map(s => distanciaKm(s, e));
+      distancias.push(distanciaKm(pontoPartida, e));
+
+      const distanciaMinima = Math.min(...distancias);
+
+      if (distanciaMinima > maiorDistancia) {
+        maiorDistancia = distanciaMinima;
+        candidata = e;
+      }
     });
 
-    // 2️⃣ ordena as demais por proximidade da base
-    let grupo = restantes
-      .sort((a, b) =>
-        distanciaKm(base, a) - distanciaKm(base, b)
-      )
-      .slice(0, maxPorRota);
+    if (candidata) sementes.push(candidata);
+  }
 
-    // 3️⃣ remove do conjunto geral
-    grupo.forEach(e => {
-      const i = restantes.findIndex(x => x.nome === e.nome);
-      if (i !== -1) restantes.splice(i, 1);
-    });
+  // =========================
+  // FASE 2 — INICIALIZA ROTAS
+  // =========================
 
-    rotas.push(grupo);
+  const rotas = sementes.map(s => [s]);
+
+  // remove sementes dos restantes
+  sementes.forEach(s => {
+    const i = restantes.findIndex(e => e.nome === s.nome);
+    if (i !== -1) restantes.splice(i, 1);
+  });
+
+  // =========================
+  // FASE 3 — DRAFT POR RODADAS
+  // =========================
+
+  let houveAlocacao = true;
+
+  while (restantes.length > 0 && houveAlocacao) {
+    houveAlocacao = false;
+
+    for (let i = 0; i < rotas.length; i++) {
+      const rota = rotas[i];
+      if (rota.length >= maxPorRota) continue;
+      if (restantes.length === 0) break;
+
+      let candidata = null;
+      let menorDistancia = Infinity;
+
+      restantes.forEach(e => {
+        const d = distanciaKm(sementes[i], e);
+        if (d < menorDistancia) {
+          menorDistancia = d;
+          candidata = e;
+        }
+      });
+
+      if (candidata) {
+        rota.push(candidata);
+        const idx = restantes.findIndex(e => e.nome === candidata.nome);
+        if (idx !== -1) restantes.splice(idx, 1);
+        houveAlocacao = true;
+      }
+    }
   }
 
   exibirRotas(rotas);
 }
+
 
 
   function distanciaTotalRota(escolas) {
