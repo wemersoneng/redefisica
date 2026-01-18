@@ -8,8 +8,6 @@
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-o9N1j7kCuxR2Pj8r+6k9sC2Wz3wZf2U6p3p3pQtGAE="
-    crossorigin=""
   />
 
   <style>
@@ -20,14 +18,9 @@
       font-family: Arial, sans-serif;
     }
 
-    #map {
-      height: 100%;
-      width: 100%;
-    }
-
-    /* Barra superior simples */
+    /* Barra superior */
     .top-bar {
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       right: 0;
@@ -41,8 +34,13 @@
       font-size: 14px;
     }
 
-    .top-bar strong {
-      font-size: 15px;
+    /* Mapa ocupa o resto da tela */
+    #map {
+      position: absolute;
+      top: 50px;
+      bottom: 0;
+      left: 0;
+      right: 0;
     }
   </style>
 </head>
@@ -55,11 +53,7 @@
   <div id="map"></div>
 
   <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-o8EeZ0pniNXh9vDOMkMt2rtI8BGG99nmHn7+4PSmXwE="
-    crossorigin=""
-  ></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     // ===============================
@@ -98,34 +92,27 @@
     ];
 
     // ===============================
-    // INICIALIZAÇÃO DO MAPA
+    // MAPA
     // ===============================
-    const map = L.map("map", {
-      zoomControl: true
-    }).setView([pontoInicial.lat, pontoInicial.lng], 13);
+    const map = L.map("map").setView(
+      [pontoInicial.lat, pontoInicial.lng],
+      13
+    );
 
-    // Camada OpenStreetMap
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap"
     }).addTo(map);
 
-    // ===============================
-    // MARCADOR DO PONTO INICIAL
-    // ===============================
-    const seinfraMarker = L.marker(
-      [pontoInicial.lat, pontoInicial.lng],
-      { title: pontoInicial.nome }
-    ).addTo(map);
+    // Ponto inicial
+    L.marker([pontoInicial.lat, pontoInicial.lng])
+      .addTo(map)
+      .bindPopup("<strong>SEINFRA</strong><br>Ponto inicial");
 
-    seinfraMarker.bindPopup(`<strong>${pontoInicial.nome}</strong><br>Ponto inicial das rotas`);
-
-    // ===============================
-    // MARCADORES DAS ESCOLAS
-    // ===============================
-    escolas.forEach(escola => {
-      const marker = L.marker([escola.lat, escola.lng])
+    // Escolas
+    escolas.forEach(e => {
+      L.marker([e.lat, e.lng])
         .addTo(map)
-        .bindPopup(`<strong>${escola.nome}</strong>`);
+        .bindPopup(`<strong>${e.nome}</strong>`);
     });
   </script>
 
