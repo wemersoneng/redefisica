@@ -291,27 +291,47 @@
   }
   
   function gerarRotas() {
-  const numRotas = Number(document.getElementById("numRotas").value);
-  const maxPorRota = Number(document.getElementById("maxPorRota").value);
+  const numRotas = parseInt(document.getElementById("numRotas").value);
+  const maxPorRota = parseInt(document.getElementById("maxPorRota").value);
 
-  if (escolasSelecionadas.length === 0) {
-    alert("Selecione pelo menos uma escola.");
+  if (escolasSelecionadas.length === 0) return;
+
+  if (numRotas * maxPorRota < escolasSelecionadas.length) {
+    alert("Capacidade insuficiente para a quantidade de escolas.");
     return;
   }
 
-  if (escolasSelecionadas.length > numRotas * maxPorRota) {
-    alert("Quantidade de escolas acima da capacidade.");
-    return;
+  // Cópia de trabalho
+  let restantes = [...escolasSelecionadas];
+  let rotas = [];
+
+  for (let r = 0; r < numRotas && restantes.length > 0; r++) {
+    // 1️⃣ escolhe uma escola base (a mais distante do ponto de partida)
+    let base = restantes.reduce((maisDistante, atual) => {
+      const dAtual = distanciaKm(pontoPartida, atual);
+      const dMais = distanciaKm(pontoPartida, maisDistante);
+      return dAtual > dMais ? atual : maisDistante;
+    });
+
+    // 2️⃣ ordena as demais por proximidade da base
+    let grupo = restantes
+      .sort((a, b) =>
+        distanciaKm(base, a) - distanciaKm(base, b)
+      )
+      .slice(0, maxPorRota);
+
+    // 3️⃣ remove do conjunto geral
+    grupo.forEach(e => {
+      const i = restantes.findIndex(x => x.nome === e.nome);
+      if (i !== -1) restantes.splice(i, 1);
+    });
+
+    rotas.push(grupo);
   }
-
-  const rotas = Array.from({ length: numRotas }, () => []);
-
-  escolasSelecionadas.forEach((escola, i) => {
-    rotas[i % numRotas].push(escola);
-  });
 
   exibirRotas(rotas);
 }
+
 
   function distanciaTotalRota(escolas) {
   let total = 0;
