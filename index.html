@@ -28,7 +28,7 @@ input[type="text"], input[type="number"] { width:100%; padding:6px; margin:6px 0
 
 <div id="topo">
   <strong>
-    Roteirização de Vistorias — REDE<br>
+    Roteirização de Vistorias — AAAAAAAAAAAAA<br>
     <span id="contador">0 escolas selecionadas</span>
   </strong>
 </div>
@@ -159,7 +159,7 @@ async function gerarRotas(){
 
   // Monta payload
   const jobs = escolasSelecionadas.map((e,i)=>({id:i+1, location:[e.lng,e.lat], name:e.nome, service:0}));
-  const vehicles = Array.from({length:nRotas},(_,i)=>({id:i+1,start:[pontoPartida.lng,pontoPartida.lat],end:[pontoPartida.lng,pontoPartida.lat],capacity:[maxEscolas]}));
+  const vehicles = Array.from({length:nRotas},(_,i)=>({id:i+1,profile: "driving-car",start:[pontoPartida.lng,pontoPartida.lat],end:[pontoPartida.lng,pontoPartida.lat],capacity:[maxEscolas]}));
   const payload = {jobs, vehicles, options: { g: true }, profile: "driving-car"};
 
 
