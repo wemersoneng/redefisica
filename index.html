@@ -101,6 +101,22 @@
   <div id="lista-escolas">
     <em>Nenhuma escola selecionada.</em>
   </div>
+  <hr>
+
+<strong>Parâmetros da operação</strong>
+
+<label>Número de rotas</label>
+<input type="number" id="numRotas" min="1" value="1">
+
+<label>Máx. de escolas por rota</label>
+<input type="number" id="maxPorRota" min="1" value="5">
+
+<button onclick="gerarRotas()">GERAR ROTAS</button>
+
+<hr>
+
+<div id="resultado-rotas"></div>
+
 </div>
 
 <script>
@@ -271,6 +287,102 @@
         resultados.appendChild(div);
       });
   }
+
+  function gerarRotas() {
+  const numRotas = parseInt(document.getElementById("numRotas").value);
+  const maxPorRota = parseInt(document.getElementById("maxPorRota").value);
+  const resultado = document.getElementById("resultado-rotas");
+  resultado.innerHTML = "";
+
+  if (escolasSelecionadas.length === 0) {
+    alert("Selecione ao menos uma escola.");
+    return;
+  }
+
+  if (numRotas * maxPorRota < escolasSelecionadas.length) {
+    alert("Capacidade insuficiente para a quantidade de escolas selecionadas.");
+    return;
+  }
+
+  // Garantir ordem por proximidade
+  ordenarEscolasPorProximidade();
+
+  // Criar estrutura das rotas
+  const rotas = Array.from({ length: numRotas }, () => []);
+
+  let indiceRota = 0;
+
+  escolasSelecionadas.forEach(escola => {
+    if (rotas[indiceRota].length >= maxPorRota) {
+      indiceRota++;
+    }
+    rotas[indiceRota].push(escola);
+  });
+
+  // Exibir resultado
+  rotas.forEach((rota, i) => {
+    if (rota.length === 0) return;
+
+    const div = document.createElement("div");
+    div.style.marginBottom = "10px";
+    div.style.padding = "6px";
+    div.style.background = "white";
+    div.style.borderRadius = "4px";
+
+    const titulo = document.createElement("strong");
+    titulo.textContent = `ROTA ${i + 1}`;
+    div.appendChild(titulo);
+
+    const ul = document.createElement("ul");
+
+    rota.forEach(e => {
+      const li = document.createElement("li");
+      li.textContent = e.nome;
+      ul.appendChild(li);
+    });
+
+    div.appendChild(ul);
+
+    const distancia = calcularDistanciaRota(rota);
+    const p = document.createElement("p");
+    p.innerHTML = `<em>Distância estimada: ${distancia.toFixed(2)} km</em>`;
+    div.appendChild(p);
+
+    resultado.appendChild(div);
+  });
+}
+
+  function calcularDistanciaRota(rota) {
+  let total = 0;
+
+  // SEINFRA -> primeira escola
+  total += distanciaEmKm(
+    pontoPartida.lat,
+    pontoPartida.lng,
+    rota[0].lat,
+    rota[0].lng
+  );
+
+  // Entre escolas
+  for (let i = 0; i < rota.length - 1; i++) {
+    total += distanciaEmKm(
+      rota[i].lat,
+      rota[i].lng,
+      rota[i + 1].lat,
+      rota[i + 1].lng
+    );
+  }
+
+  // Última escola -> SEINFRA
+  total += distanciaEmKm(
+    rota[rota.length - 1].lat,
+    rota[rota.length - 1].lng,
+    pontoPartida.lat,
+    pontoPartida.lng
+  );
+
+  return total;
+}
 
   document.getElementById("busca").addEventListener("input", atualizarBusca);
 </script>
