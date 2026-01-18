@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
-    <title>Rotas de Vistoria Pro - V16 Final</title>
+    <title>Rotas de Vistoria Pro - V17 Final</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -168,7 +168,6 @@
 
     function getCor(tipo) { return { infantil: '#00bcd4', fundamental: '#9c27b0', mista: '#ff9800', equipamento: '#607d8b' }[tipo] || '#1a73e8'; }
 
-    // Ícone que aceita número opcional
     function criarIcone(e, sel = false, numero = null) {
         const conteudo = numero !== null 
             ? `<span style="transform:rotate(45deg); color:white; font-weight:bold; font-size:14px">${numero}</span>`
@@ -208,22 +207,6 @@
                 <i class="fas fa-trash-alt" style="color:var(--danger); padding:10px" onclick="removerPorId(${s.id})"></i>
             </div>
         `).join("");
-
-        const dContent = document.getElementById('drawer-list');
-        dContent.innerHTML = "";
-        [...new Set(escolas.map(e => e.tipo))].forEach(t => {
-            const group = document.createElement('div');
-            group.innerHTML = `<div class="drawer-group-title">${t}</div>`;
-            escolas.filter(e => e.tipo === t).forEach(e => {
-                const isSel = selecionadas.find(s=>s.id===e.id);
-                const item = document.createElement('div');
-                item.className = `drawer-item ${isSel?'selected':''}`;
-                item.innerHTML = `<span>${e.nome}</span><span class="tag-mod tag-${e.modalidade}">${e.modalidade}</span>`;
-                item.onclick = () => { map.panTo([e.lat, e.lng]); alternar(e); };
-                group.appendChild(item);
-            });
-            dContent.appendChild(group);
-        });
     }
 
     document.getElementById('busca').addEventListener('input', function(e) {
@@ -266,7 +249,9 @@
 
         const btn = document.getElementById('btnGerar');
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OTIMIZANDO...';
+        
         polilinhas.forEach(p => map.removeLayer(p));
+        polilinhas = [];
         document.getElementById("container-rotas").innerHTML = "";
 
         try {
@@ -302,7 +287,11 @@
                         <a href="https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR NO GPS</a>
                     </div>`;
                 document.getElementById("container-rotas").appendChild(card);
-                if(rota.geometry) polilinhas.push(L.polyline(decode(rota.geometry), {color:cor, weight:6}).addTo(map));
+                if(rota.geometry) {
+                    const poly = L.polyline(decode(rota.geometry), {color:cor, weight:6});
+                    poly.addTo(map);
+                    polilinhas.push(poly);
+                }
             });
             if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
         } catch(e) { alert("Erro ao calcular."); }
@@ -313,8 +302,9 @@
         const details = el.nextElementSibling;
         const isActive = details.classList.contains('active');
         
-        // Reset geral
+        // RESET GERAL: Mostra todas as linhas e ícones normais
         document.querySelectorAll('.rota-details').forEach(d => d.classList.remove('active'));
+        polilinhas.forEach(p => map.addLayer(p));
         escolas.forEach(e => {
             const isSel = selecionadas.find(s=>s.id===e.id);
             marcadores[e.id].setIcon(criarIcone(e, isSel));
@@ -326,13 +316,17 @@
             const steps = rotasAtivas[idx].steps.filter(s => s.type === "job");
             const idsRota = steps.map(s => Number(s.id));
 
-            // Esconde quem não é da rota e numera quem é
+            // FILTRO DE LINHAS: Esconde as polilinhas que não são a selecionada
+            polilinhas.forEach((p, pIdx) => {
+                if(pIdx !== idx) map.removeLayer(p);
+            });
+
+            // FILTRO DE ÍCONES: Esconde quem não é da rota e numera quem é
             escolas.forEach(e => {
                 const ordem = idsRota.indexOf(e.id);
                 if(ordem === -1) {
                     map.removeLayer(marcadores[e.id]);
                 } else {
-                    // Atualiza o ícone com o número da sequência (ordem + 1)
                     marcadores[e.id].setIcon(criarIcone(e, true, ordem + 1));
                     marcadores[e.id].addTo(map);
                 }
