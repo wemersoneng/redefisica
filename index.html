@@ -10,7 +10,6 @@
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
-
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
   </script>
@@ -135,20 +134,26 @@
       attribution: "&copy; OpenStreetMap"
     }).addTo(map);
 
-    const iconeEscola = new L.Icon.Default();
+    const iconeEscola = L.icon({
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      iconSize: [20, 32],
+      iconAnchor: [10, 32],
+      popupAnchor: [1, -26]
+    });
 
     const iconeSelecionado = L.icon({
       iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
       shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      iconSize: [25, 41],
-      iconAnchor: [12, 41]
+      iconSize: [20, 32],
+      iconAnchor: [10, 32]
     });
 
     const iconeSEINFRA = L.icon({
       iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
       shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      iconSize: [25, 41],
-      iconAnchor: [12, 41]
+      iconSize: [22, 36],
+      iconAnchor: [11, 36]
     });
 
     L.marker([pontoPartida.lat, pontoPartida.lng], { icon: iconeSEINFRA })
@@ -170,6 +175,28 @@
     // FUNÇÕES
     // =========================
 
+    function distanciaEmKm(lat1, lng1, lat2, lng2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) ** 2;
+
+      return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function ordenarEscolasPorProximidade() {
+      escolasSelecionadas.sort((a, b) => {
+        const da = distanciaEmKm(pontoPartida.lat, pontoPartida.lng, a.lat, a.lng);
+        const db = distanciaEmKm(pontoPartida.lat, pontoPartida.lng, b.lat, b.lng);
+        return da - db;
+      });
+    }
+
     function alternarEscola(escola) {
       const marcador = marcadores[escola.nome];
 
@@ -187,9 +214,7 @@
 
     function removerEscola(nome) {
       const index = escolasSelecionadas.findIndex(e => e.nome === nome);
-      if (index !== -1) {
-        escolasSelecionadas.splice(index, 1);
-      }
+      if (index !== -1) escolasSelecionadas.splice(index, 1);
 
       const marcador = marcadores[nome];
       marcador.setIcon(iconeEscola);
@@ -199,6 +224,8 @@
     }
 
     function atualizarUI() {
+      ordenarEscolasPorProximidade();
+
       document.getElementById("contador").textContent =
         `${escolasSelecionadas.length} escolas selecionadas`;
 
@@ -234,3 +261,4 @@
 
 </body>
 </html>
+
