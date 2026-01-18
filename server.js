@@ -1,31 +1,41 @@
 // server.js
-import express from 'express';
-import fetch from 'node-fetch';
-import cors from 'cors';
+import express from "express";
+import fetch from "node-fetch";
+import cors from "cors";
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
 
-const API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImMwNzA3NmE4OGU1ZjQwNTRhNTI4M2ZkNzlmMTY4Y2Y2IiwiaCI6Im11cm11cjY0In0='; // substitua com sua API key
+// Endpoint que o front-end chama
+app.post("/rotas", async (req, res) => {
+  const payload = req.body;
 
-app.post('/rotas', async (req,res)=>{
-  try{
-    const response = await fetch('https://api.openrouteservice.org/optimization', {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization': API_KEY
+  try {
+    const response = await fetch("https://api.openrouteservice.org/optimization", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": process.env.ORS_API_KEY // <--- coloque a chave no Render Environment
       },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify(payload)
     });
+
+    if (!response.ok) {
+      const text = await response.text();
+      return res.status(response.status).send({ error: text });
+    }
+
     const data = await response.json();
     res.json(data);
-  } catch(err){
+  } catch (err) {
     console.error(err);
-    res.status(500).json({error:'Erro ao chamar ORS'});
+    res.status(500).json({ error: "Erro na comunicação com a API" });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, ()=>console.log(`Backend rodando na porta ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
