@@ -390,7 +390,7 @@
                     return found;
                 });
                 
-                const urlGps = `https://www.google.com/maps/dir/$${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}/${pontoPartida.lat},${pontoPartida.lng}`;
+                const urlGps = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}/${pontoPartida.lat},${pontoPartida.lng}`;
 
                 const card = document.createElement("div");
                 card.className = "rota-card"; card.id = `card-rota-${idx}`; card.style.borderLeftColor = cor;
