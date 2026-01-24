@@ -53,6 +53,8 @@
         .tag-mod { font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase; margin-top: 4px; display: inline-block; width: fit-content; }
         .tag-integral { background: #e8f5e9; color: #2e7d32; }
         .tag-parcial { background: #fff3e0; color: #ef6c00; }
+        .btn-copy { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; margin-top: 10px; }
+        .btn-copy:active { background: #ddd; }
     </style>
 </head>
 <body>
@@ -105,6 +107,12 @@
             <input type="number" id="num-veiculos" value="2" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
             <label style="font-size:11px;">CAPACIDADE POR VEÍCULO</label>
             <input type="number" id="max-por-veiculo" value="10" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+            
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; background:#f0f7ff; padding:10px; border-radius:8px;">
+                <input type="checkbox" id="equilibrar-carga" style="width:20px; height:20px;">
+                <label for="equilibrar-carga" style="font-size:11px; font-weight:bold; color:var(--primary);">EQUILIBRAR DISTRIBUIÇÃO ENTRE CARROS</label>
+            </div>
+
             <button onclick="toggleModal(false)" style="width:100%; background:var(--dark); color:white; padding:15px; border-radius:10px; border:none; font-weight:bold;">SALVAR</button>
         </div>
     </div>
@@ -221,71 +229,54 @@
     const map = L.map('map', { zoomControl: false }).setView([pontoPartida.lat, pontoPartida.lng], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// 1. Definição das Cores (Lógica de intensidade para Integral/Parcial)
-function getCor(tipo, modalidade) {
-    const cores = {
-        infantil:    { parcial: '#64b5f6', integral: '#1e8bf0' }, 
-        fundamental: { parcial: '#f08b3c', integral: '#ff4f00' }, 
-        mista:       { parcial: '#43a047', integral: '#108115' }, 
-        equipamento: { parcial: '#808080', integral: '#454545' }  
-    };
-
-    return cores[tipo][modalidade] || '#1a73e8';
-}
-
-// 2. Definição dos Ícones por tipo
-function getSimbolo(tipo) {
-    const simbolos = {
-        infantil: 'fa-baby',
-        fundamental: 'fa-book',
-        mista: 'fa-graduation-cap',
-        equipamento: 'fa-school'
-    };
-    return simbolos[tipo] || 'fa-map-marker-alt';
-}
-
-// 3. Função Criar Icone Atualizada
-function criarIcone(e, sel = false, numero = null) {
-    const corBase = getCor(e.tipo, e.modalidade);
-    const simbolo = getSimbolo(e.tipo);
-    
-    // Borda amarela se estiver selecionada, caso contrário, borda branca
-    const borda = sel ? '3px solid #FFD700' : '2px solid white';
-    const shadow = sel ? '0 0 15px rgba(255, 215, 0, 0.8)' : '0 2px 5px rgba(0,0,0,0.3)';
-
-    const conteudo = numero !== null 
-        ? `<span style="transform:rotate(45deg); color:white; font-weight:bold; font-size:14px">${numero}</span>`
-        : `<i class="fas ${simbolo}" style="transform:rotate(45deg); color:white; font-size:12px"></i>`;
-
-    return L.divIcon({
+    // Marcador SEINFRA Diferenciado
+    const iconSeinfra = L.divIcon({
         className: '',
-        html: `<div class="${sel ? 'marker-pulse' : ''}" 
-                 style="background:${corBase}; 
-                        width:32px; height:32px; 
-                        border-radius:50% 50% 50% 0; 
-                        transform:rotate(-45deg); 
-                        display:flex; align-items:center; justify-content:center; 
-                        border:${borda}; 
-                        box-shadow:${shadow}">
-                ${conteudo}
+        html: `<div style="background:#0d47a1; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 10px rgba(0,0,0,0.5)">
+                <i class="fas fa-building-shield" style="color:white; font-size:18px"></i>
                </div>`,
-        iconSize: [32, 32], 
-        iconAnchor: [16, 32]
+        iconSize: [36, 36], iconAnchor: [18, 18]
     });
-}
+    L.marker([pontoPartida.lat, pontoPartida.lng], {icon: iconSeinfra}).addTo(map).bindPopup("<b>SEINFRA - PONTO DE PARTIDA</b>");
 
-    L.marker([pontoPartida.lat, pontoPartida.lng], {icon: L.icon({iconUrl:"https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png", iconSize:[25,41]})}).addTo(map);
+    function getCor(tipo, modalidade) {
+        const cores = {
+            infantil:    { parcial: '#64b5f6', integral: '#1e8bf0' }, 
+            fundamental: { parcial: '#f08b3c', integral: '#ff4f00' }, 
+            mista:       { parcial: '#43a047', integral: '#108115' }, 
+            equipamento: { parcial: '#808080', integral: '#454545' }  
+        };
+        return cores[tipo][modalidade] || '#1a73e8';
+    }
+
+    function getSimbolo(tipo) {
+        const simbolos = { infantil: 'fa-baby', fundamental: 'fa-book', mista: 'fa-graduation-cap', equipamento: 'fa-school' };
+        return simbolos[tipo] || 'fa-map-marker-alt';
+    }
+
+    function criarIcone(e, sel = false, numero = null) {
+        const corBase = getCor(e.tipo, e.modalidade);
+        const simbolo = getSimbolo(e.tipo);
+        const borda = sel ? '3px solid #FFD700' : '2px solid white';
+        const shadow = sel ? '0 0 15px rgba(255, 215, 0, 0.8)' : '0 2px 5px rgba(0,0,0,0.3)';
+        const conteudo = numero !== null 
+            ? `<span style="transform:rotate(45deg); color:white; font-weight:bold; font-size:14px">${numero}</span>`
+            : `<i class="fas ${simbolo}" style="transform:rotate(45deg); color:white; font-size:12px"></i>`;
+
+        return L.divIcon({
+            className: '',
+            html: `<div class="${sel ? 'marker-pulse' : ''}" 
+                     style="background:${corBase}; width:32px; height:32px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; border:${borda}; box-shadow:${shadow}">
+                    ${conteudo}
+                   </div>`,
+            iconSize: [32, 32], iconAnchor: [16, 32]
+        });
+    }
 
     escolas.forEach(e => {
         const m = L.marker([e.lat, e.lng], { icon: criarIcone(e) }).addTo(map);
-        
-        // Adição do Popup
         m.bindPopup(`<b>${e.nome}</b><br><small>Tipo: ${e.tipo.toUpperCase()}</small>`);
-        
-        m.on('click', () => {
-            alternar(e);
-            m.openPopup();
-        });
+        m.on('click', () => { alternar(e); m.openPopup(); });
         marcadores[e.id] = m;
     });
 
@@ -316,11 +307,7 @@ function criarIcone(e, sel = false, numero = null) {
                     const item = document.createElement('div');
                     item.className = `drawer-item ${isSel?'selected':''}`;
                     item.innerHTML = `<span>${e.nome}</span><span class="tag-mod tag-${e.modalidade}">${e.modalidade}</span>`;
-                    item.onclick = () => { 
-                        map.setView([e.lat, e.lng], 16); 
-                        alternar(e); 
-                        marcadores[e.id].openPopup();
-                    };
+                    item.onclick = () => { map.setView([e.lat, e.lng], 16); alternar(e); marcadores[e.id].openPopup(); };
                     grupoContainer.appendChild(item);
                 });
                 dContent.appendChild(grupoContainer);
@@ -346,88 +333,90 @@ function criarIcone(e, sel = false, numero = null) {
         });
     });
 
-async function gerarRotas() {
-    const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
-    const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
-    
-    // --- NOVA VERIFICAÇÃO DE CAPACIDADE ---
-    const capacidadeTotalFrota = nVeiculos * capVeiculo;
-    const totalSelecionadas = selecionadas.length;
-
-    if (totalSelecionadas === 0) {
-        return alert("Selecione os locais antes de otimizar!");
-    }
-
-    if (totalSelecionadas > capacidadeTotalFrota) {
-        return alert(`Frota insuficiente! 
-        \nVocê selecionou ${totalSelecionadas} unidades, mas sua frota atual suporta apenas ${capacidadeTotalFrota} vistorias.
-        \nAjuste o número de veículos ou a capacidade nas configurações.`);
-    }
-    // --------------------------------------
-
-    const btn = document.getElementById('btnGerar');
-    btn.disabled = true; 
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OTIMIZANDO...';
-    
-    polilinhas.forEach(p => map.removeLayer(p));
-    polilinhas = []; 
-    document.getElementById("container-rotas").innerHTML = "";
-
-    try {
-        const r = await fetch("https://redefisica1.onrender.com/rotas", {
-            method: "POST", 
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({
-                jobs: selecionadas.map(e => ({ id: Number(e.id), location: [e.lng, e.lat], amount: [1] })),
-                vehicles: Array.from({length: nVeiculos}, (_, i) => ({
-                    id: i, 
-                    profile: "driving-car", 
-                    start:[pontoPartida.lng, pontoPartida.lat], 
-                    end:[pontoPartida.lng, pontoPartida.lat], 
-                    capacity:[capVeiculo]
-                }))
-            })
-        });
+    async function gerarRotas() {
+        const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
+        const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
+        const equilibrar = document.getElementById('equilibrar-carga').checked;
         
-        const data = await r.json();
-        rotasAtivas = data.routes;
+        const capTotal = nVeiculos * capVeiculo;
+        if (selecionadas.length === 0) return alert("Selecione os locais antes de otimizar!");
+        if (selecionadas.length > capTotal) return alert(`Frota insuficiente! Selecionadas: ${selecionadas.length}, Suporta: ${capTotal}.`);
 
-        data.routes.forEach((rota, idx) => {
-            const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
-            const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
-            const card = document.createElement("div");
-            card.className = "rota-card"; 
-            card.id = `card-rota-${idx}`;
-            card.style.borderLeftColor = cor;
-            card.innerHTML = `
-                <div class="rota-header" onclick="toggleFiltroRota(${idx}, this)">
-                    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px">
-                        <span>EQUIPE ${idx+1}</span> <span>${(rota.distance/1000).toFixed(1)} km</span>
-                    </div>
-                    <small style="color:#666">${pts.length} vistorias</small>
-                </div>
-                <div class="rota-details">
-                    <ol style="padding-left:18px; font-size:12px; margin-bottom:10px">${pts.map(p => `<li>${p.nome}</li>`).join("")}</ol>
-                    <a href="https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR NO GPS</a>
-                </div>`;
-            document.getElementById("container-rotas").appendChild(card);
+        const btn = document.getElementById('btnGerar');
+        btn.disabled = true; 
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OTIMIZANDO...';
+        
+        // Timeout para aviso de 5 segundos
+        const timerAviso = setTimeout(() => {
+            alert("O servidor está iniciando... a primeira otimização pode demorar um pouco mais, mas já está sendo processada!");
+        }, 5000);
+
+        polilinhas.forEach(p => map.removeLayer(p));
+        polilinhas = []; 
+        document.getElementById("container-rotas").innerHTML = "";
+
+        const payload = {
+            jobs: selecionadas.map(e => ({ id: Number(e.id), location: [e.lng, e.lat], amount: [1] })),
+            vehicles: Array.from({length: nVeiculos}, (_, i) => ({
+                id: i, profile: "driving-car", start:[pontoPartida.lng, pontoPartida.lat], end:[pontoPartida.lng, pontoPartida.lat], capacity:[capVeiculo]
+            }))
+        };
+
+        if(equilibrar) payload.options = { objective: "minmax-completion-time" };
+
+        try {
+            const r = await fetch("https://redefisica1.onrender.com/rotas", {
+                method: "POST", headers: {"Content-Type":"application/json"},
+                body: JSON.stringify(payload)
+            });
             
-            if(rota.geometry) {
-                const poly = L.polyline(decode(rota.geometry), {color:cor, weight:6});
-                poly.addTo(map); 
-                polilinhas.push(poly);
-            }
-        });
-        
-        if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
-        
-    } catch(e) { 
-        alert("Erro de conexão com o servidor de rotas."); 
-    } finally { 
-        btn.disabled = false; 
-        btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA'; 
+            clearTimeout(timerAviso);
+            const data = await r.json();
+            rotasAtivas = data.routes;
+
+            data.routes.forEach((rota, idx) => {
+                const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
+                const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
+                
+                // URL GPS Corrigida (Retornando para a SEINFRA)
+                const urlGps = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}/${pontoPartida.lat},${pontoPartida.lng}`;
+
+                const card = document.createElement("div");
+                card.className = "rota-card"; card.id = `card-rota-${idx}`; card.style.borderLeftColor = cor;
+                card.innerHTML = `
+                    <div class="rota-header" onclick="toggleFiltroRota(${idx}, this)">
+                        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px">
+                            <span>EQUIPE ${idx+1}</span> <span>${(rota.distance/1000).toFixed(1)} km</span>
+                        </div>
+                        <small style="color:#666">${pts.length} vistorias</small>
+                    </div>
+                    <div class="rota-details">
+                        <ol style="padding-left:18px; font-size:12px; margin-bottom:10px">${pts.map(p => `<li>${p.nome}</li>`).join("")}</ol>
+                        <a href="${urlGps}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR NO GPS</a>
+                        <button class="btn-copy" onclick="copiarTextoRota(${idx})"><i class="fas fa-copy"></i> COPIAR LISTA</button>
+                    </div>`;
+                document.getElementById("container-rotas").appendChild(card);
+                
+                if(rota.geometry) {
+                    const poly = L.polyline(decode(rota.geometry), {color:cor, weight:6});
+                    poly.addTo(map); polilinhas.push(poly);
+                }
+            });
+            if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
+        } catch(e) { 
+            clearTimeout(timerAviso);
+            alert("Falha no servidor. Se você selecionou muitas unidades (ex: +30), tente reduzir o volume ou aumentar o número de veículos."); 
+        } finally { 
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA'; 
+        }
     }
-}
+
+    function copiarTextoRota(idx) {
+        const rota = rotasAtivas[idx];
+        const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
+        const texto = `ROTA EQUIPE ${idx+1}:\n` + pts.map((p, i) => `${i+1}. ${p.nome}`).join('\n') + `\n\nTotal: ${(rota.distance/1000).toFixed(1)} km`;
+        navigator.clipboard.writeText(texto).then(() => alert("Lista copiada!"));
+    }
 
     function toggleFiltroRota(idx, el) {
         const details = el.nextElementSibling;
