@@ -55,6 +55,10 @@
         .tag-parcial { background: #fff3e0; color: #ef6c00; }
         .btn-copy { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; margin-top: 10px; }
         .btn-copy:active { background: #ddd; }
+
+        /* Novos estilos solicitados */
+        input:disabled { background: #eeeeee; color: #999; cursor: not-allowed; border: 1px dashed #ccc; }
+        #aviso-equilibrio { font-size: 10px; color: #d93025; font-weight: bold; margin-top: -10px; margin-bottom: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -102,18 +106,21 @@
 
     <div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; align-items:center; justify-content:center;">
         <div style="background:white; padding:25px; border-radius:20px; width:85%; max-width:320px;">
-            <h3>Configuração</h3>
-            <label style="font-size:11px;">VEÍCULOS DISPONÍVEIS</label>
-            <input type="number" id="num-veiculos" value="2" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
-            <label style="font-size:11px;">CAPACIDADE POR VEÍCULO</label>
-            <input type="number" id="max-por-veiculo" value="10" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+            <h3>Configuração Inteligente</h3>
             
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; background:#f0f7ff; padding:10px; border-radius:8px;">
-                <input type="checkbox" id="equilibrar-carga" style="width:20px; height:20px;">
-                <label for="equilibrar-carga" style="font-size:11px; font-weight:bold; color:var(--primary);">EQUILIBRAR DISTRIBUIÇÃO ENTRE CARROS</label>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; background:#f0f7ff; padding:12px; border-radius:10px; border:1px solid #c2e0ff;">
+                <input type="checkbox" id="equilibrar-carga" onchange="ajustarCamposEquilibrio()" checked style="width:20px; height:20px; accent-color:var(--primary);">
+                <label for="equilibrar-carga" style="font-size:11px; font-weight:bold; color:var(--primary); line-height:1.2">EQUILIBRAR CARGA (FORÇAR DIVISÃO)</label>
             </div>
 
-            <button onclick="toggleModal(false)" style="width:100%; background:var(--dark); color:white; padding:15px; border-radius:10px; border:none; font-weight:bold;">SALVAR</button>
+            <label style="font-size:11px;">VEÍCULOS DISPONÍVEIS</label>
+            <input type="number" id="num-veiculos" value="3" oninput="ajustarCamposEquilibrio()" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+            
+            <label style="font-size:11px;">CAPACIDADE POR VEÍCULO</label>
+            <input type="number" id="max-por-veiculo" value="10" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+            <div id="aviso-equilibrio">⚠️ Capacidade recalculada para forçar divisão.</div>
+
+            <button onclick="toggleModal(false)" style="width:100%; background:var(--dark); color:white; padding:15px; border-radius:10px; border:none; font-weight:bold;">SALVAR CONFIGURAÇÃO</button>
         </div>
     </div>
 
@@ -222,14 +229,12 @@
     ];
 
     const escolas = escolasDadosBrutos.map((e, i) => ({ id: i + 1, ...e }));
-
     const pontoPartida = { nome:"SEINFRA", lat:-7.194722, lng:-39.315364 };
     let selecionadas = [], marcadores = {}, polilinhas = [], filtroTipo = 'todos', filtroMod = 'todos', rotasAtivas = [];
 
     const map = L.map('map', { zoomControl: false }).setView([pontoPartida.lat, pontoPartida.lng], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Marcador SEINFRA Diferenciado
     const iconSeinfra = L.divIcon({
         className: '',
         html: `<div style="background:#0d47a1; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 10px rgba(0,0,0,0.5)">
@@ -280,11 +285,13 @@
         marcadores[e.id] = m;
     });
 
+    // Função Alternar com Hook para ajuste de equilíbrio
     function alternar(e) {
         const idx = selecionadas.findIndex(s => s.id === e.id);
         if (idx === -1) { selecionadas.push(e); marcadores[e.id].setIcon(criarIcone(e, true)); } 
         else { selecionadas.splice(idx, 1); marcadores[e.id].setIcon(criarIcone(e, false)); }
         atualizarUI();
+        ajustarCamposEquilibrio(); // Chama a nova função sempre que mudar a seleção
     }
 
     function atualizarUI() {
@@ -315,40 +322,42 @@
         });
     }
 
-    document.getElementById('busca').addEventListener('input', function(e) {
-        const t = e.target.value.toLowerCase();
-        const lista = document.getElementById('lista-pesquisa');
-        lista.innerHTML = "";
-        if (t.length < 2) return;
-        escolas.filter(esc => esc.nome.toLowerCase().includes(t)).slice(0,10).forEach(esc => {
-            const i = document.createElement('div'); i.className = 'item-busca';
-            i.innerHTML = `<i class="fas fa-search"></i><span>${esc.nome}</span>`;
-            i.onclick = () => {
-                map.setView([esc.lat, esc.lng], 16);
-                if(!selecionadas.find(s=>s.id===esc.id)) alternar(esc);
-                marcadores[esc.id].openPopup();
-                e.target.value = ""; lista.innerHTML = "";
-            };
-            lista.appendChild(i);
-        });
-    });
+    // NOVA FUNÇÃO: Configuração Inteligente
+    function ajustarCamposEquilibrio() {
+        const check = document.getElementById('equilibrar-carga').checked;
+        const inputCap = document.getElementById('max-por-veiculo');
+        const aviso = document.getElementById('aviso-equilibrio');
+        const nVeiculos = parseInt(document.getElementById('num-veiculos').value) || 1;
+        const nSelecionadas = selecionadas.length;
+
+        if (check && nSelecionadas > 0) {
+            const capForcada = Math.ceil(nSelecionadas / nVeiculos);
+            inputCap.value = capForcada;
+            inputCap.disabled = true;
+            aviso.style.display = 'block';
+            aviso.innerText = `⚠️ Equilíbrio Ativo: Máximo de ${capForcada} unidades por carro.`;
+        } else {
+            inputCap.disabled = false;
+            aviso.style.display = 'none';
+        }
+    }
 
     async function gerarRotas() {
         const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
         const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
         const equilibrar = document.getElementById('equilibrar-carga').checked;
         
+        if (selecionadas.length === 0) return alert("Selecione as unidades!");
+        
         const capTotal = nVeiculos * capVeiculo;
-        if (selecionadas.length === 0) return alert("Selecione os locais antes de otimizar!");
         if (selecionadas.length > capTotal) return alert(`Frota insuficiente! Selecionadas: ${selecionadas.length}, Suporta: ${capTotal}.`);
 
         const btn = document.getElementById('btnGerar');
         btn.disabled = true; 
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OTIMIZANDO...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> FORÇANDO ROTAS...';
         
-        // Timeout para aviso de 5 segundos
         const timerAviso = setTimeout(() => {
-            alert("O servidor está iniciando... a primeira otimização pode demorar um pouco mais, mas já está sendo processada!");
+            alert("O servidor está iniciando... a primeira otimização pode demorar um pouco mais!");
         }, 5000);
 
         polilinhas.forEach(p => map.removeLayer(p));
@@ -376,10 +385,12 @@
 
             data.routes.forEach((rota, idx) => {
                 const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
-                const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
+                const pts = rota.steps.filter(s => s.type === "job").map(s => {
+                    const found = escolas.find(e => e.id === Number(s.id));
+                    return found;
+                });
                 
-                // URL GPS Corrigida (Retornando para a SEINFRA)
-                const urlGps = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}/${pontoPartida.lat},${pontoPartida.lng}`;
+                const urlGps = `https://www.google.com/maps/dir/$${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}/${pontoPartida.lat},${pontoPartida.lng}`;
 
                 const card = document.createElement("div");
                 card.className = "rota-card"; card.id = `card-rota-${idx}`; card.style.borderLeftColor = cor;
@@ -405,12 +416,13 @@
             if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
         } catch(e) { 
             clearTimeout(timerAviso);
-            alert("Falha no servidor. Se você selecionou muitas unidades (ex: +30), tente reduzir o volume ou aumentar o número de veículos."); 
+            alert("Falha no servidor. Verifique o volume de unidades ou veículos."); 
         } finally { 
             btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA'; 
         }
     }
 
+    // Funções de Interface Auxiliares (Cópia, Filtros, Busca, etc - Originais mantidas)
     function copiarTextoRota(idx) {
         const rota = rotasAtivas[idx];
         const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
@@ -452,7 +464,7 @@
         document.querySelectorAll('.pill').forEach(p => p.classList.remove('active', 'active-mod'));
         document.querySelector('#row-tipos .pill').classList.add('active');
         escolas.forEach(e => { marcadores[e.id].setIcon(criarIcone(e, false)); marcadores[e.id].addTo(map); });
-        atualizarUI(); map.setView([pontoPartida.lat, pontoPartida.lng], 13);
+        atualizarUI(); ajustarCamposEquilibrio(); map.setView([pontoPartida.lat, pontoPartida.lng], 13);
     }
 
     function setFiltroTipo(t, el) {
@@ -474,6 +486,24 @@
         });
     }
 
+    document.getElementById('busca').addEventListener('input', function(e) {
+        const t = e.target.value.toLowerCase();
+        const lista = document.getElementById('lista-pesquisa');
+        lista.innerHTML = "";
+        if (t.length < 2) return;
+        escolas.filter(esc => esc.nome.toLowerCase().includes(t)).slice(0,10).forEach(esc => {
+            const i = document.createElement('div'); i.className = 'item-busca';
+            i.innerHTML = `<i class="fas fa-search"></i><span>${esc.nome}</span>`;
+            i.onclick = () => {
+                map.setView([esc.lat, esc.lng], 16);
+                if(!selecionadas.find(s=>s.id===esc.id)) alternar(esc);
+                marcadores[esc.id].openPopup();
+                e.target.value = ""; lista.innerHTML = "";
+            };
+            lista.appendChild(i);
+        });
+    });
+
     function removerPorId(id) { alternar(escolas.find(e => e.id === id)); }
     function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); document.getElementById('overlay').classList.toggle('active'); }
     function togglePanel() { document.getElementById('panel').classList.toggle('open'); }
@@ -490,6 +520,8 @@
         } return coords;
     }
     
+    // Inicialização
+    ajustarCamposEquilibrio();
     atualizarUI();
 </script>
 </body>
