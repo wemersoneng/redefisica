@@ -9,181 +9,56 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
-        :root { 
-            /* Paleta Renovada - Google Maps Style */
-            --primary: #1a73e8; 
-            --success: #1e8e3e; 
-            --danger: #d93025; 
-            --dark: #202124; 
-            --gray: #70757a; 
-            --bg-light: #f8f9fa;
-            --blue-soft: #e8f0fe;
-            --green-soft: #e6f4ea;
-            --orange-soft: #fef7e0;
-            --shadow: 0 4px 12px rgba(0,0,0,0.12);
-            --radius: 12px;
-        }
-
+        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --dark: #202124; --gray: #5f6368; --green: #29903b; --blue: #1e8bf0}
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body, html { 
-            margin: 0; padding: 0; height: 100%; width: 100%; 
-            font-family: 'Inter', sans-serif; 
-            -webkit-font-smoothing: antialiased;
-            background: var(--bg-light); 
-            overflow: hidden; 
-        }
-
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; background: #f8f9fa; }
         #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; }
-
-        /* Status Bar Superior */
-        .server-status { 
-            position: absolute; bottom: 85px; left: 15px; z-index: 1000; 
-            background: white; padding: 6px 14px; border-radius: 20px; 
-            display: flex; align-items: center; gap: 8px; 
-            font-size: 11px; font-weight: 700; color: var(--dark); 
-            box-shadow: var(--shadow); pointer-events: none; 
-            letter-spacing: 0.5px;
-        }
-        #ponto-status { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
-
-        /* Top Bar & Busca */
-        .top-bar { 
-            position: absolute; top: 15px; left: 10px; right: 10px; 
-            z-index: 1000; display: flex; flex-direction: column; gap: 12px; 
-            pointer-events: none; 
-        }
-        .row-search { display: flex; gap: 10px; pointer-events: auto; }
-        
-        .search-box { 
-            flex: 1; background: white; border-radius: var(--radius); 
-            box-shadow: var(--shadow); position: relative; 
-            border: 1px solid #dadce0;
-        }
-        .search-input-wrapper { display: flex; align-items: center; padding: 0 15px; height: 48px; }
-        .search-box input { 
-            border: none; outline: none; width: 100%; font-size: 15px; 
-            margin-left: 10px; font-family: 'Inter', sans-serif;
-            color: var(--dark);
-        }
-
-        .menu-btn { 
-            background: white; border-radius: var(--radius); width: 48px; height: 48px; 
-            display: flex; align-items: center; justify-content: center; 
-            box-shadow: var(--shadow); cursor: pointer; pointer-events: auto; 
-            border: 1px solid #dadce0; color: var(--gray);
-            transition: all 0.2s;
-        }
-        .menu-btn:active { transform: scale(0.95); background: #f1f3f4; }
+        .server-status { position: absolute; bottom: 70px; left: 15px; z-index: 1000; background: white; padding: 5px 10px; border-radius: 15px; display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: bold; color: var(--gray); box-shadow: 0 2px 5px rgba(0,0,0,0.1); pointer-events: none; }
+        #ponto-status { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+        .top-bar { position: absolute; top: 20px; left: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .row-search { display: flex; gap: 8px; pointer-events: auto; }
+        .search-box { flex: 1; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: relative; }
+        .search-input-wrapper { display: flex; align-items: center; padding: 0 12px; height: 45px; }
+        .search-box input { border: none; outline: none; width: 100%; font-size: 15px; margin-left: 8px; }
+        #lista-pesquisa { position: absolute; top: 50px; left: 0; right: 0; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-height: 250px; overflow-y: auto; z-index: 1100; }
+        .item-busca { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; }
+        .menu-btn { background: white; border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; pointer-events: auto; }
         .btn-reset { color: var(--danger); }
-
-        /* Filtros Modernos (Pills) */
-        .filter-container { display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
-        .filter-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
-        .filter-row::-webkit-scrollbar { display: none; }
-
-        .pill { 
-            background: white; padding: 8px 16px; border-radius: 10px; 
-            font-size: 11px; font-weight: 600; color: var(--gray); 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; 
-            white-space: nowrap; border: 1px solid #dadce0;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .pill.active { background: var(--dark); color: white; border-color: var(--dark); }
-        .pill.active-mod { background: var(--blue-soft); border-color: var(--primary); color: var(--primary); }
-
-        /* Drawer / Menu Lateral */
-        .drawer { 
-            position: fixed; top: 0; left: -300px; width: 300px; height: 100%; 
-            background: white; z-index: 2000; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            box-shadow: 5px 0 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; 
-        }
+        .filter-container { display: flex; flex-direction: column; gap: 6px; pointer-events: auto; }
+        .filter-row { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+        .pill { background: white; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; color: var(--gray); box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; white-space: nowrap; border: 1.5px solid transparent; }
+        .pill.active { background: var(--dark); color: white; }
+        .pill.active-mod { border-color: var(--primary); color: var(--primary); }
+        .drawer { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: white; z-index: 2000; transition: 0.3s; box-shadow: 5px 0 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
         .drawer.open { left: 0; }
-        .drawer-header { 
-            padding: 24px 20px; background: var(--primary); color: white; 
-            display: flex; justify-content: space-between; align-items: center; 
-            font-size: 18px; font-weight: 600;
-        }
-        .drawer-group-title { 
-            font-size: 11px; font-weight: 700; color: var(--primary); 
-            text-transform: uppercase; padding: 20px 15px 8px; 
-            background: #f8f9fa; letter-spacing: 1px;
-        }
-        .drawer-item { 
-            padding: 14px 15px; cursor: pointer; font-size: 14px; 
-            display: flex; flex-direction: column; border-bottom: 1px solid #f1f3f4;
-            transition: background 0.2s;
-        }
-        .drawer-item:hover { background: #f8f9fa; }
-        .drawer-item.selected { background: var(--blue-soft); border-left: 4px solid var(--primary); }
-
-        /* Painel Inferior (Selecionadas) */
-        .selected-panel { 
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 1001; 
-            background: white; border-radius: 24px 24px 0 0; 
-            transform: translateY(calc(100% - 65px)); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-            box-shadow: 0 -5px 25px rgba(0,0,0,0.1); 
-        }
-        .selected-panel.open { transform: translateY(0); }
-        .panel-header { 
-            height: 65px; display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 25px; cursor: pointer; position: relative;
-        }
-        .panel-header::before {
-            content: ""; width: 40px; height: 4px; background: #e0e0e0; 
-            border-radius: 2px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-        }
-
-        /* Botão Flutuante (FAB) */
-        .fab-gerar { 
-            position: absolute; bottom: 90px; right: 20px; z-index: 1000; 
-            background: var(--success); color: white; border: none; 
-            padding: 0 30px; height: 56px; border-radius: 28px; 
-            box-shadow: 0 6px 16px rgba(30, 142, 62, 0.3); 
-            font-weight: 700; font-size: 14px; letter-spacing: 0.5px;
-            display: flex; align-items: center; gap: 12px; cursor: pointer;
-            transition: all 0.2s;
-        }
-        .fab-gerar:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-
-        /* Tags de Modalidade */
-        .tag-mod { 
-            font-size: 10px; padding: 3px 10px; border-radius: 6px; 
-            font-weight: 700; text-transform: uppercase; margin-top: 6px; 
-            display: inline-block; width: fit-content; letter-spacing: 0.5px;
-        }
-        .tag-integral { background: var(--green-soft); color: var(--success); }
-        .tag-parcial { background: var(--orange-soft); color: #b06000; }
-
-        /* Cards de Rota */
-        .rota-card { 
-            background: white; border-radius: var(--radius); margin-bottom: 12px; 
-            box-shadow: var(--shadow); pointer-events: auto; 
-            border-left: 6px solid var(--primary); overflow: hidden;
-            border-top: 1px solid #eee; border-right: 1px solid #eee;
-        }
-        .rota-header { padding: 16px; cursor: pointer; }
-
-        /* Animação do Marcador */
-        @keyframes pulse-blue { 
-            0% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.5); } 
-            70% { box-shadow: 0 0 0 15px rgba(26, 115, 232, 0); } 
-            100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0); } 
-        }
+        .drawer-header { padding: 20px; background: var(--blue); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .drawer-content { flex: 1; overflow-y: auto; padding: 10px; }
+        .drawer-group-title { font-size: 11px; font-weight: bold; color: var(--primary); text-transform: uppercase; padding: 15px 10px 5px; border-bottom: 1px solid #eee; background: #f8f9fa; }
+        .drawer-item { padding: 12px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; flex-direction: column; border-bottom: 1px solid #f9f9f9; }
+        .drawer-item.selected { background: #e8f0fe; border-left: 4px solid var(--primary); }
+        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999; display: none; }
+        .drawer-overlay.active { display: block; }
+        @keyframes pulse-blue { 0% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(26, 115, 232, 0); } 100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0); } }
         .marker-pulse { border-radius: 50%; animation: pulse-blue 2s infinite; }
-        
-        /* Modal Config */
-        #modal > div {
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            border: 1px solid #eee;
-        }
+        .selected-panel { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1001; background: white; border-radius: 20px 20px 0 0; transform: translateY(calc(100% - 60px)); transition: 0.3s; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+        .selected-panel.open { transform: translateY(0); }
+        .panel-header { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; cursor: pointer; }
+        #container-rotas { position: absolute; top: 145px; left: 10px; right: 10px; z-index: 999; pointer-events: none; }
+        .rota-card { background: white; border-radius: 10px; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: auto; border-left: 5px solid var(--primary); overflow: hidden; }
+        .rota-header { padding: 12px; cursor: pointer; }
+        .rota-details { display: none; padding: 12px; border-top: 1px solid #eee; background: #fafafa; }
+        .rota-details.active { display: block; }
+        .fab-gerar { position: absolute; bottom: 80px; right: 20px; z-index: 1000; background: var(--success); color: white; border: none; padding: 0 25px; height: 50px; border-radius: 25px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .tag-mod { font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: bold; text-transform: uppercase; margin-top: 4px; display: inline-block; width: fit-content; }
+        .tag-integral { background: #e8f5e9; color: #2e7d32; }
+        .tag-parcial { background: #fff3e0; color: #ef6c00; }
+        .btn-copy { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; margin-top: 10px; }
+        .btn-copy:active { background: #ddd; }
+
+        /* Novos estilos solicitados */
+        input:disabled { background: #eeeeee; color: #999; cursor: not-allowed; border: 1px dashed #ccc; }
+        #aviso-equilibrio { font-size: 10px; color: #d93025; font-weight: bold; margin-top: -10px; margin-bottom: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -239,7 +114,7 @@
             </div>
 
             <label style="font-size:11px;">VEÍCULOS DISPONÍVEIS</label>
-            <input type="number" id="num-veiculos" value="3" oninput="ajustarCamposEquilibrio()" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+            <input type="number" id="num-veiculos" value="1" oninput="ajustarCamposEquilibrio()" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
             
             <label style="font-size:11px;">CAPACIDADE POR VEÍCULO</label>
             <input type="number" id="max-por-veiculo" value="10" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
@@ -479,7 +354,7 @@
 
         const btn = document.getElementById('btnGerar');
         btn.disabled = true; 
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> FORÇANDO ROTAS...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GERANDO ROTAS...';
         
         const timerAviso = setTimeout(() => {
             alert("Só um instantinho. O servidor está iniciando... a primeira otimização pode demorar um pouco mais!");
@@ -543,7 +418,7 @@
             clearTimeout(timerAviso);
             alert("Falha no servidor. Verifique o volume de unidades ou veículos."); 
         } finally { 
-            btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA'; 
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> GERAR ROTAS'; 
         }
     }
 
