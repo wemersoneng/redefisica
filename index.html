@@ -138,47 +138,7 @@
         { nome: "ESCOLA 017", lat: -7.212300, lng: -39.328341, tipo: "infantil", modalidade: "parcial" },
         { nome: "ESCOLA 018", lat: -7.227920, lng: -39.352961, tipo: "fundamental", modalidade: "integral" },
         { nome: "ESCOLA 019", lat: -7.218698, lng: -39.298127, tipo: "equipamento", modalidade: "parcial" },
-        { nome: "ESCOLA 020", lat: -7.262060, lng: -39.324573, tipo: "mista", modalidade: "parcial" },
-        { nome: "ESCOLA 021", lat: -7.215432, lng: -39.312345, tipo: "infantil", modalidade: "integral" },
-        { nome: "ESCOLA 022", lat: -7.223456, lng: -39.305678, tipo: "fundamental", modalidade: "parcial" },
-        { nome: "ESCOLA 023", lat: -7.234567, lng: -39.312345, tipo: "mista", modalidade: "integral" },
-        { nome: "ESCOLA 024", lat: -7.245678, lng: -39.323456, tipo: "equipamento", modalidade: "parcial" },
-        { nome: "ESCOLA 025", lat: -7.256789, lng: -39.334567, tipo: "infantil", modalidade: "integral" },
-        { nome: "ESCOLA 026", lat: -7.267890, lng: -39.345678, tipo: "fundamental", modalidade: "parcial" },
-        { nome: "ESCOLA 027", lat: -7.201234, lng: -39.283456, tipo: "mista", modalidade: "integral" },
-        { nome: "ESCOLA 028", lat: -7.212345, lng: -39.294567, tipo: "equipamento", modalidade: "parcial" },
-        { nome: "ESCOLA 029", lat: -7.223456, lng: -39.305678, tipo: "infantil", modalidade: "integral" },
-        { nome: "ESCOLA 030", lat: -7.234567, lng: -39.316789, tipo: "fundamental", modalidade: "parcial" },
-        { nome: "ESCOLA 031", lat: -7.195000, lng: -39.310000, tipo: "mista", modalidade: "integral" },
-        { nome: "ESCOLA 032", lat: -7.198000, lng: -39.315000, tipo: "infantil", modalidade: "parcial" },
-        { nome: "ESCOLA 033", lat: -7.202000, lng: -39.320000, tipo: "fundamental", modalidade: "integral" },
-        { nome: "ESCOLA 034", lat: -7.205000, lng: -39.325000, tipo: "equipamento", modalidade: "parcial" },
-        { nome: "ESCOLA 035", lat: -7.208000, lng: -39.330000, tipo: "mista", modalidade: "integral" },
-        { nome: "ESCOLA 036", lat: -7.211000, lng: -39.335000, tipo: "infantil", modalidade: "parcial" },
-        { nome: "ESCOLA 037", lat: -7.214000, lng: -39.340000, tipo: "fundamental", modalidade: "integral" },
-        { nome: "ESCOLA 038", lat: -7.217000, lng: -39.345000, tipo: "equipamento", modalidade: "parcial" },
-        { nome: "ESCOLA 039", lat: -7.220000, lng: -39.350000, tipo: "mista", modalidade: "integral" },
-        { nome: "ESCOLA 040", lat: -7.223000, lng: -39.280000, tipo: "infantil", modalidade: "parcial" },
-        { nome: "ESCOLA 041", lat: -7.226000, lng: -39.285000, tipo: "fundamental", modalidade: "integral" },
-        { nome: "ESCOLA 042", lat: -7.229000, lng: -39.290000, tipo: "equipamento", modalidade: "parcial" },
-        { nome: "ESCOLA 043", lat: -7.232000, lng: -39.295000, tipo: "mista", modalidade: "integral" },
-        { nome: "ESCOLA 044", lat: -7.235000, lng: -39.300000, tipo: "infantil", modalidade: "parcial" },
-        { nome: "ESCOLA 045", lat: -7.238000, lng: -39.305000, tipo: "fundamental", modalidade: "integral" },
-        { nome: "ESCOLA 046", lat: -7.241000, lng: -39.310000, tipo: "equipamento", modalidade: "parcial" },
-        { nome: "ESCOLA 047", lat: -7.244000, lng: -39.315000, tipo: "mista", modalidade: "integral" },
-        { nome: "ESCOLA 048", lat: -7.247000, lng: -39.320000, tipo: "infantil", modalidade: "parcial" },
-        { nome: "ESCOLA 049", lat: -7.250000, lng: -39.325000, tipo: "fundamental", modalidade: "integral" },
-        { nome: "ESCOLA 050", lat: -7.253000, lng: -39.330000, tipo: "equipamento", modalidade: "parcial" },
-        { nome: "ESCOLA 051", lat: -7.256000, lng: -39.335000, tipo: "mista", modalidade: "integral" },
-        { nome: "ESCOLA 052", lat: -7.259000, lng: -39.340000, tipo: "infantil", modalidade: "parcial" },
-        { nome: "ESCOLA 053", lat: -7.262000, lng: -39.345000, tipo: "fundamental", modalidade: "integral" },
-        { nome: "ESCOLA 054", lat: -7.210000, lng: -39.270000, tipo: "equipamento", modalidade: "parcial" },
-        { nome: "ESCOLA 055", lat: -7.213000, lng: -39.275000, tipo: "mista", modalidade: "integral" },
-        { nome: "ESCOLA 056", lat: -7.216000, lng: -39.280000, tipo: "infantil", modalidade: "parcial" },
-        { nome: "ESCOLA 057", lat: -7.219000, lng: -39.285000, tipo: "fundamental", modalidade: "integral" },
-        { nome: "ESCOLA 058", lat: -7.222000, lng: -39.290000, tipo: "equipamento", modalidade: "parcial" },
-        { nome: "ESCOLA 059", lat: -7.225000, lng: -39.295000, tipo: "mista", modalidade: "integral" },
-        { nome: "ESCOLA 060", lat: -7.228000, lng: -39.300000, tipo: "infantil", modalidade: "parcial" }
+        { nome: "ESCOLA 020", lat: -7.262060, lng: -39.324573, tipo: "mista", modalidade: "parcial" }
     ];
 
     const escolas = escolasDadosBrutos.map((e, i) => ({ id: i + 1, ...e }));
@@ -188,7 +148,6 @@
     const map = L.map('map', { zoomControl: false }).setView([pontoPartida.lat, pontoPartida.lng], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Ícone SEINFRA Diferenciado (AJUSTE 4)
     const iconSeinfra = L.divIcon({
         className: '',
         html: `<div style="background:#0d47a1; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:3px solid white; box-shadow:0 0 10px rgba(0,0,0,0.5)">
@@ -297,15 +256,13 @@
         const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
         const equilibrar = document.getElementById('equilibrar-carga').checked;
         
-        const totalSelecionadas = selecionadas.length;
-        if (totalSelecionadas === 0) return alert("Selecione os locais antes de otimizar!");
-        if (totalSelecionadas > (nVeiculos * capVeiculo)) return alert("Frota insuficiente para o volume selecionado!");
+        if (selecionadas.length === 0) return alert("Selecione os locais antes de otimizar!");
+        if (selecionadas.length > (nVeiculos * capVeiculo)) return alert("Frota insuficiente!");
 
         const btn = document.getElementById('btnGerar');
         btn.disabled = true; 
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OTIMIZANDO...';
         
-        // Alerta de Demora (AJUSTE 2)
         const timerAviso = setTimeout(() => {
             alert("O sistema está iniciando e a primeira otimização costuma demorar um pouco, mas está em andamento!");
         }, 5000);
@@ -314,17 +271,26 @@
         polilinhas = []; 
         document.getElementById("container-rotas").innerHTML = "";
 
+        // IMPLEMENTAÇÃO DA LÓGICA SOLICITADA
         const payload = {
-            jobs: selecionadas.map(e => ({ id: Number(e.id), location: [e.lng, e.lat], amount: [1] })),
+            jobs: selecionadas.map(e => ({ 
+                id: Number(e.id), 
+                location: [e.lng, e.lat], 
+                amount: [1],
+                service: 1800 // 30 min de serviço por local (Equilíbrio de tempo)
+            })),
             vehicles: Array.from({length: nVeiculos}, (_, i) => ({
-                id: i, profile: "driving-car", start:[pontoPartida.lng, pontoPartida.lat], end:[pontoPartida.lng, pontoPartida.lat], 
+                id: i, 
+                profile: "driving-car", 
+                start:[pontoPartida.lng, pontoPartida.lat], 
+                end:[pontoPartida.lng, pontoPartida.lat], 
                 capacity:[capVeiculo],
-                // Força o sistema a usar o veículo se o equilíbrio estiver ligado
-                ...(equilibrar ? { fixed_cost: 1000 } : {})
-            }))
+                fixed_cost: equilibrar ? 10000 : 0 // Força o uso do veículo se equilibrar estiver ON
+            })),
+            options: {
+                objective: equilibrar ? "minmax-completion-time" : "min-transport-cost"
+            }
         };
-
-        if(equilibrar) payload.options = { objective: "minmax-completion-time" };
 
         try {
             const r = await fetch("https://redefisica1.onrender.com/rotas", {
@@ -334,14 +300,15 @@
             
             clearTimeout(timerAviso);
             const data = await r.json();
+            if(!data.routes) throw new Error();
             rotasAtivas = data.routes;
 
             data.routes.forEach((rota, idx) => {
                 const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
                 const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
                 
-                // URL GPS Corrigida com Retorno (AJUSTE 5)
-                const urlGps = `https://www.google.com/maps/dir/$${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}/${pontoPartida.lat},${pontoPartida.lng}`;
+                // Retorno à SEINFRA no Google Maps
+                const urlGps = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}/${pontoPartida.lat},${pontoPartida.lng}`;
 
                 const card = document.createElement("div");
                 card.className = "rota-card"; card.id = `card-rota-${idx}`; card.style.borderLeftColor = cor;
@@ -367,19 +334,17 @@
             if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
         } catch(e) { 
             clearTimeout(timerAviso);
-            // Erro de Volume (AJUSTE 6)
-            alert("Erro de conexão ou volume excessivo. Se você selecionou muitas unidades, tente diminuir a quantidade por processamento."); 
+            alert("Erro no processamento. Tente diminuir o número de unidades ou verifique a conexão."); 
         } finally { 
             btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> OTIMIZAR AGORA'; 
         }
     }
 
-    // Copiar Lista (AJUSTE 3)
     function copiarLista(idx) {
         const rota = rotasAtivas[idx];
         const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
         const texto = `ROTA EQUIPE ${idx+1}:\n` + pts.map((p, i) => `${i+1}. ${p.nome}`).join('\n');
-        navigator.clipboard.writeText(texto).then(() => alert("Copiado para o WhatsApp!"));
+        navigator.clipboard.writeText(texto).then(() => alert("Lista copiada!"));
     }
 
     function toggleFiltroRota(idx, el) {
