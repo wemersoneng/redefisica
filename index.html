@@ -10,11 +10,11 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --dark: #202124; --gray: #5f6368; }
+        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --dark: #202124; --gray: #5f6368; --green: #0d956a; --orange: #ff7b72}
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Segoe UI', sans-serif; overflow: hidden; background: #f8f9fa; }
         #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 1; }
-        .server-status { position: absolute; bottom: 70px; left: 15px; z-index: 1000; background: white; padding: 5px 10px; border-radius: 15px; display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: bold; color: var(--gray); box-shadow: 0 2px 5px rgba(0,0,0,0.1); pointer-events: none; }
+        .server-status { position: absolute; bottom: 70px; left: 15px; z-index: 1000; background: white; padding: 5px 10px; border-radius: 15px; display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: bold; color: var(--green); box-shadow: 0 2px 5px rgba(0,0,0,0.1); pointer-events: none; }
         #ponto-status { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
         .top-bar { position: absolute; top: 20px; left: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         .row-search { display: flex; gap: 8px; pointer-events: auto; }
@@ -32,7 +32,7 @@
         .pill.active-mod { border-color: var(--primary); color: var(--primary); }
         .drawer { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: white; z-index: 2000; transition: 0.3s; box-shadow: 5px 0 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
         .drawer.open { left: 0; }
-        .drawer-header { padding: 20px; background: var(--dark); color: white; display: flex; justify-content: space-between; align-items: center; }
+        .drawer-header { padding: 20px; background: var(--orange); color: white; display: flex; justify-content: space-between; align-items: center; }
         .drawer-content { flex: 1; overflow-y: auto; padding: 10px; }
         .drawer-group-title { font-size: 11px; font-weight: bold; color: var(--primary); text-transform: uppercase; padding: 15px 10px 5px; border-bottom: 1px solid #eee; background: #f8f9fa; }
         .drawer-item { padding: 12px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; flex-direction: column; border-bottom: 1px solid #f9f9f9; }
@@ -63,7 +63,7 @@
 </head>
 <body>
 
-    <div class="server-status"><div id="ponto-status"></div><span>SERVER ENGINE</span></div>
+    <div class="server-status"><div id="ponto-status"></div><span>REDE FÍSICA</span></div>
     <div class="drawer-overlay" id="overlay" onclick="toggleDrawer()"></div>
     <div class="drawer" id="drawer">
         <div class="drawer-header"><b>Unidades Educacionais</b><i class="fas fa-times" onclick="toggleDrawer()"></i></div>
@@ -97,10 +97,10 @@
 
     <div id="map"></div>
     <div id="container-rotas"></div>
-    <button class="fab-gerar" onclick="gerarRotas()" id="btnGerar"><i class="fas fa-route"></i> OTIMIZAR AGORA</button>
+    <button class="fab-gerar" onclick="gerarRotas()" id="btnGerar"><i class="fas fa-route"></i> GERAR ROTAS</button>
 
     <div class="selected-panel" id="panel">
-        <div class="panel-header" onclick="togglePanel()"><b>Checklist (<span id="badgeCount">0</span>)</b><i class="fas fa-chevron-up"></i></div>
+        <div class="panel-header" onclick="togglePanel()"><b>Unidades selecionadas (<span id="badgeCount">0</span>)</b><i class="fas fa-chevron-up"></i></div>
         <div id="lista-selecionadas" style="height: 250px; overflow-y: auto; padding: 10px 20px;"></div>
     </div>
 
@@ -357,7 +357,7 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> FORÇANDO ROTAS...';
         
         const timerAviso = setTimeout(() => {
-            alert("O servidor está iniciando... a primeira otimização pode demorar um pouco mais!");
+            alert("Só um instantinho. O servidor está iniciando... a primeira otimização pode demorar um pouco mais!");
         }, 5000);
 
         polilinhas.forEach(p => map.removeLayer(p));
