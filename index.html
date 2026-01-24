@@ -277,7 +277,7 @@
                 id: Number(e.id), 
                 location: [e.lng, e.lat], 
                 amount: [1],
-                service: 1800 // 30 min de serviço por local (Equilíbrio de tempo)
+                service: 7200 // 2 horas de serviço por local (Equilíbrio de tempo)
             })),
             vehicles: Array.from({length: nVeiculos}, (_, i) => ({
                 id: i, 
