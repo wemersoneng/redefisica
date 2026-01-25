@@ -364,52 +364,58 @@ window.onbeforeunload = function() {
     }
 
 async function gerarRotas() {
+    // 1. Pega as configurações do seu painel
     const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
     const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
     const equilibrar = document.getElementById('equilibrar-carga').checked;
     
     if (selecionadas.length === 0) return alert("Selecione as unidades!");
-    
-    const capTotal = nVeiculos * capVeiculo;
-    if (selecionadas.length > capTotal) return alert(`Frota insuficiente!`);
 
+    // 2. Feedback visual imediato (evita que o usuário clique mil vezes enquanto processa)
     const btn = document.getElementById('btnGerar');
     btn.disabled = true; 
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GERANDO...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CALCULANDO...';
     
-    // Limpeza prévia
+    // 3. Limpa o mapa anterior para não "empilhar" desenhos
     polilinhas.forEach(p => map.removeLayer(p));
     polilinhas = []; 
     document.getElementById("container-rotas").innerHTML = "";
 
+    // 4. Monta o pedido para o servidor (Payload)
     const payload = {
         jobs: selecionadas.map(e => ({ id: Number(e.id), location: [e.lng, e.lat], amount: [1] })),
         vehicles: Array.from({length: nVeiculos}, (_, i) => ({
-            id: i, profile: "driving-car", start:[pontoPartida.lng, pontoPartida.lat], end:[pontoPartida.lng, pontoPartida.lat], capacity:[capVeiculo]
+            id: i, 
+            profile: "driving-car", 
+            start:[pontoPartida.lng, pontoPartida.lat], 
+            end:[pontoPartida.lng, pontoPartida.lat], 
+            capacity:[capVeiculo]
         }))
     };
 
+    // Força o equilíbrio apenas se necessário (isso consome mais tempo de cálculo)
     if(equilibrar) payload.options = { objective: "minmax-completion-time" };
 
     try {
         const r = await fetch("https://redefisica1.onrender.com/rotas", {
-            method: "POST", headers: {"Content-Type":"application/json"},
+            method: "POST", 
+            headers: {"Content-Type":"application/json"},
             body: JSON.stringify(payload)
         });
         
         const data = await r.json();
         rotasAtivas = data.routes;
 
-        // --- A SOLUÇÃO DEFINITIVA AQUI ---
-        // 1. Criamos uma lista de quem DEVE aparecer
+        // --- O PULO DO GATO: Otimização de Visibilidade ---
+        // Pegamos apenas os IDs das escolas que o servidor conseguiu encaixar nas rotas
         const idsNasRotas = data.routes.flatMap(r => 
             r.steps.filter(s => s.type === "job").map(s => Number(s.id))
         );
 
-        // 2. Escondemos TUDO primeiro
+        // Escondemos TODAS as escolas do mapa primeiro
         escolas.forEach(e => map.removeLayer(marcadores[e.id]));
 
-        // 3. Mostramos APENAS os que estão na rota (com um leve atraso para o Leaflet processar)
+        // Mostramos apenas as que estão na rota atual, com ícones simplificados
         setTimeout(() => {
             escolas.forEach(e => {
                 if (idsNasRotas.includes(e.id)) {
@@ -417,44 +423,24 @@ async function gerarRotas() {
                 }
             });
         }, 100);
-        // ---------------------------------
 
+        // 5. Desenha as linhas coloridas no mapa de forma eficiente
         data.routes.forEach((rota, idx) => {
-            const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
-            const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
-            
-            // Link GPS
-            const coordsCaminho = pts.map(p => `${p.lat},${p.lng}`).join('/');
-            const urlGps = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${coordsCaminho}/${pontoPartida.lat},${pontoPartida.lng}`;
-
-            const card = document.createElement("div");
-            card.className = "rota-card"; card.id = `card-rota-${idx}`; card.style.borderLeftColor = cor;
-            card.innerHTML = `
-                <div class="rota-header" onclick="toggleFiltroRota(${idx}, this)">
-                    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px">
-                        <span>EQUIPE ${idx+1}</span> <span>${(rota.distance/1000).toFixed(1)} km</span>
-                    </div>
-                    <small style="color:#666">${pts.length} vistorias</small>
-                </div>
-                <div class="rota-details">
-                    <ol style="padding-left:18px; font-size:12px; margin-bottom:10px">${pts.map(p => `<li>${p.nome}</li>`).join("")}</ol>
-                    <a href="${urlGps}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR NO GPS</a>
-                    <button class="btn-copy" onclick="copiarTextoRota(${idx})"><i class="fas fa-copy"></i> COPIAR LISTA</button>
-                </div>`;
-            document.getElementById("container-rotas").appendChild(card);
-            
+            const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`; // Gera cores diferentes para cada carro
             if(rota.geometry) {
-                const poly = L.polyline(decode(rota.geometry), {color:cor, weight:6});
-                poly.addTo(map); polilinhas.push(poly);
+                const poly = L.polyline(decode(rota.geometry), {color:cor, weight:6, opacity: 0.7});
+                poly.addTo(map); 
+                polilinhas.push(poly);
             }
+            // Adiciona o card na lateral (está no seu código original)
+            criarCardRota(rota, idx, cor); 
         });
 
-        if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
-
     } catch(e) { 
-        alert("Erro ao gerar rotas. Tente reduzir o número de veículos."); 
+        alert("Ops! A rota ficou muito complexa. Tente aumentar o número de veículos."); 
     } finally { 
-        btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> GERAR ROTAS'; 
+        btn.disabled = false; 
+        btn.innerHTML = '<i class="fas fa-route"></i> GERAR ROTAS'; 
     }
 }
 
