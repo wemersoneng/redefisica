@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    
     <style>
         :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --dark: #202124; --gray: #5f6368; --green: #29903b; --blue: #1e8bf0}
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -237,10 +238,21 @@
     { nome: "CRECHE SALVIANO", lat: -7.2392670119896, lng: -39.3140841258574, tipo: "infantil", modalidade: "integral" }
     ];
 
+// Acordador
+fetch("https://redefisica1.onrender.com/rotas", { method: "OPTIONS" }).catch(() => {});
+
+// Segurança: Evita fechar a aba por erro e perder a seleção
+window.onbeforeunload = function() {
+    if (selecionadas.length > 0) return "Você tem unidades selecionadas. Deseja realmente sair?";
+};
+
+   
     const escolas = escolasDadosBrutos.map((e, i) => ({ id: i + 1, ...e }));
     const pontoPartida = { nome:"SEINFRA", lat:-7.194722, lng:-39.315364 };
     let selecionadas = [], marcadores = {}, polilinhas = [], filtroTipo = 'todos', filtroMod = 'todos', rotasAtivas = [];
 
+    
+    
     const map = L.map('map', { zoomControl: false }).setView([pontoPartida.lat, pontoPartida.lng], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
@@ -397,6 +409,21 @@
                 const pts = rota.steps.filter(s => s.type === "job").map(s => {
                     const found = escolas.find(e => e.id === Number(s.id));
                     return found;
+
+                    // Esconder marcadores que não estão nas rotas para dar foco
+const idsNasRotas = data.routes.flatMap(r => r.steps.filter(s => s.type === "job").map(s => Number(s.id)));
+
+escolas.forEach(e => {
+    if (!idsNasRotas.includes(e.id)) {
+        map.removeLayer(marcadores[e.id]); // Esconde quem não foi selecionado para a rota
+    }
+});
+
+escolas.forEach(e => {
+    if (!idsNasRotas.includes(e.id)) {
+        map.removeLayer(marcadores[e.id]);
+    }
+});
                 });
                 
                 const urlGps = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}/${pontoPartida.lat},${pontoPartida.lng}`;
@@ -433,11 +460,21 @@
 
     // Funções de Interface Auxiliares (Cópia, Filtros, Busca, etc - Originais mantidas)
     function copiarTextoRota(idx) {
-        const rota = rotasAtivas[idx];
-        const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
-        const texto = `ROTA EQUIPE ${idx+1}:\n` + pts.map((p, i) => `${i+1}. ${p.nome}`).join('\n') + `\n\nTotal: ${(rota.distance/1000).toFixed(1)} km`;
-        navigator.clipboard.writeText(texto).then(() => alert("Lista copiada!"));
-    }
+    const rota = rotasAtivas[idx];
+    const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
+    
+    // Gerar link do Google Maps para múltiplas paradas
+    const baseGps = "https://www.google.com/maps/dir/";
+    const coordenadas = pts.map(p => `${p.lat},${p.lng}`).join('/');
+    const urlGps = `${baseGps}${pontoPartida.lat},${pontoPartida.lng}/${coordenadas}/${pontoPartida.lat},${pontoPartida.lng}`;
+
+    const texto = `📍 *ROTA EQUIPE ${idx+1}*\n\n` + 
+                  pts.map((p, i) => `${i+1}️⃣ ${p.nome}`).join('\n') + 
+                  `\n\n📏 Distância: ${(rota.distance/1000).toFixed(1)} km` +
+                  `\n\n🚗 Iniciar GPS: ${urlGps}`;
+
+    navigator.clipboard.writeText(texto).then(() => alert("Lista e Link do GPS copiados!"));
+}
 
     function toggleFiltroRota(idx, el) {
         const details = el.nextElementSibling;
@@ -517,6 +554,17 @@
     function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); document.getElementById('overlay').classList.toggle('active'); }
     function togglePanel() { document.getElementById('panel').classList.toggle('open'); }
     function toggleModal(s) { document.getElementById('modal').style.display = s ? 'flex' : 'none'; }
+
+    function localizarUsuario() {
+    map.locate({setView: true, maxZoom: 16});
+}
+
+map.on('locationfound', (e) => {
+    L.circle(e.latlng, e.accuracy).addTo(map);
+    L.marker(e.latlng, {
+        icon: L.divIcon({className: '', html: '<i class="fas fa-street-view" style="color:#1a73e8; font-size:24px"></i>'})
+    }).addTo(map).bindPopup("Você está aqui").openPopup();
+});
     
     function decode(str) {
         let index=0, lat=0, lng=0, coords=[], shift=0, result=0, byte=null, lat_c, lng_c;
