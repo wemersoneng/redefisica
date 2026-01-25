@@ -363,7 +363,7 @@ window.onbeforeunload = function() {
         }
     }
 
-    async function gerarRotas() {
+async function gerarRotas() {
         const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
         const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
         const equilibrar = document.getElementById('equilibrar-carga').checked;
@@ -404,29 +404,31 @@ window.onbeforeunload = function() {
             const data = await r.json();
             rotasAtivas = data.routes;
 
+            // --- AQUI ESTÁ A CORREÇÃO PARA ESCONDER AS NÃO ESCOLHIDAS ---
+            // Pegamos todos os IDs que estão em qualquer uma das rotas geradas
+            const idsNasRotas = data.routes.flatMap(r => 
+                r.steps.filter(s => s.type === "job").map(s => Number(s.id))
+            );
+
+            // Escondemos do mapa as escolas que não entraram em nenhuma rota
+            escolas.forEach(e => {
+                if (!idsNasRotas.includes(e.id)) {
+                    map.removeLayer(marcadores[e.id]);
+                }
+            });
+            // -----------------------------------------------------------
+
             data.routes.forEach((rota, idx) => {
                 const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
+                
+                // Filtramos os pontos para o card e link GPS
                 const pts = rota.steps.filter(s => s.type === "job").map(s => {
-                    const found = escolas.find(e => e.id === Number(s.id));
-                    return found;
-
-                    // Esconder marcadores que não estão nas rotas para dar foco
-const idsNasRotas = data.routes.flatMap(r => r.steps.filter(s => s.type === "job").map(s => Number(s.id)));
-
-escolas.forEach(e => {
-    if (!idsNasRotas.includes(e.id)) {
-        map.removeLayer(marcadores[e.id]); // Esconde quem não foi selecionado para a rota
-    }
-});
-
-escolas.forEach(e => {
-    if (!idsNasRotas.includes(e.id)) {
-        map.removeLayer(marcadores[e.id]);
-    }
-});
+                    return escolas.find(e => e.id === Number(s.id));
                 });
                 
-                const urlGps = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${pts.map(p=>`${p.lat},${p.lng}`).join('/')}/${pontoPartida.lat},${pontoPartida.lng}`;
+                // Link GPS Corrigido
+                const coordenadasCaminho = pts.map(p => `${p.lat},${p.lng}`).join('/');
+                const urlGps = `https://www.google.com/maps/dir/$${pontoPartida.lat},${pontoPartida.lng}/${coordenadasCaminho}/${pontoPartida.lat},${pontoPartida.lng}`;
 
                 const card = document.createElement("div");
                 card.className = "rota-card"; card.id = `card-rota-${idx}`; card.style.borderLeftColor = cor;
@@ -449,9 +451,12 @@ escolas.forEach(e => {
                     poly.addTo(map); polilinhas.push(poly);
                 }
             });
+
             if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
+
         } catch(e) { 
             clearTimeout(timerAviso);
+            console.error(e);
             alert("Falha no servidor. Verifique o volume de unidades ou veículos."); 
         } finally { 
             btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> GERAR ROTAS'; 
@@ -470,7 +475,7 @@ escolas.forEach(e => {
 
     const texto = `📍 *ROTA EQUIPE ${idx+1}*\n\n` + 
                   pts.map((p, i) => `${i+1}️⃣ ${p.nome}`).join('\n') + 
-                  `\n\n📏 Distância: ${(rota.distance/1000).toFixed(1)} km` +
+                  `\n\n📏 Distância estimada: ${(rota.distance/1000).toFixed(1)} km` +
                   `\n\n🚗 Iniciar GPS: ${urlGps}`;
 
     navigator.clipboard.writeText(texto).then(() => alert("Lista e Link do GPS copiados!"));
