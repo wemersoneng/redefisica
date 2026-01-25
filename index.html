@@ -366,67 +366,98 @@ window.onbeforeunload = function() {
 async function gerarRotas() {
     const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
     const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
-    
-    // PEGADINHA: Se "equilibrar" estiver ligado, o cálculo fica 10x mais difícil.
-    // Vamos desativar o modo "pesado" internamente se houver muitos pontos.
-    const equilibrar = selecionadas.length > 25 ? false : document.getElementById('equilibrar-carga').checked;
+    const equilibrar = document.getElementById('equilibrar-carga').checked;
     
     if (selecionadas.length === 0) return alert("Selecione as unidades!");
     
+    const capTotal = nVeiculos * capVeiculo;
+    if (selecionadas.length > capTotal) return alert(`Frota insuficiente!`);
+
     const btn = document.getElementById('btnGerar');
     btn.disabled = true; 
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CALCULANDO...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GERANDO...';
     
-    // Limpeza visual
+    // Limpeza prévia
     polilinhas.forEach(p => map.removeLayer(p));
     polilinhas = []; 
     document.getElementById("container-rotas").innerHTML = "";
 
-    // Montando o pedido de forma mais leve
     const payload = {
-        jobs: selecionadas.map(e => ({ 
-            id: Number(e.id), 
-            location: [e.lng, e.lat], 
-            amount: [1] 
-        })),
+        jobs: selecionadas.map(e => ({ id: Number(e.id), location: [e.lng, e.lat], amount: [1] })),
         vehicles: Array.from({length: nVeiculos}, (_, i) => ({
-            id: i, 
-            profile: "driving-car", 
-            start:[pontoPartida.lng, pontoPartida.lat], 
-            end:[pontoPartida.lng, pontoPartida.lat], 
-            capacity:[capVeiculo]
+            id: i, profile: "driving-car", start:[pontoPartida.lng, pontoPartida.lat], end:[pontoPartida.lng, pontoPartida.lat], capacity:[capVeiculo]
         }))
     };
 
-    // Só usamos o cálculo complexo se você tiver poucas escolas
-    if(equilibrar) {
-        payload.options = { objective: "minmax-completion-time" };
-    }
+    if(equilibrar) payload.options = { objective: "minmax-completion-time" };
 
     try {
         const r = await fetch("https://redefisica1.onrender.com/rotas", {
-            method: "POST", 
-            headers: {"Content-Type":"application/json"},
+            method: "POST", headers: {"Content-Type":"application/json"},
             body: JSON.stringify(payload)
         });
         
-        if (!r.ok) throw new Error("Servidor sobrecarregado");
-
         const data = await r.json();
-        
-        // Se o servidor não encontrou rota para todas as escolas
-        if (data.code === 2) throw new Error("Muitos pontos para poucos carros");
-
         rotasAtivas = data.routes;
-        desenharRotasNoMapa(data.routes); // Função auxiliar para limpar o mapa
+
+        // --- A SOLUÇÃO DEFINITIVA AQUI ---
+        // 1. Criamos uma lista de quem DEVE aparecer
+        const idsNasRotas = data.routes.flatMap(r => 
+            r.steps.filter(s => s.type === "job").map(s => Number(s.id))
+        );
+
+        // 2. Escondemos TUDO primeiro
+        escolas.forEach(e => map.removeLayer(marcadores[e.id]));
+
+        // 3. Mostramos APENAS os que estão na rota (com um leve atraso para o Leaflet processar)
+        setTimeout(() => {
+            escolas.forEach(e => {
+                if (idsNasRotas.includes(e.id)) {
+                    marcadores[e.id].addTo(map);
+                }
+            });
+        }, 100);
+        // ---------------------------------
+
+        data.routes.forEach((rota, idx) => {
+            const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`;
+            const pts = rota.steps.filter(s => s.type === "job").map(s => escolas.find(e => e.id === Number(s.id)));
+            
+            // Link GPS
+            const coordsCaminho = pts.map(p => `${p.lat},${p.lng}`).join('/');
+            const urlGps = `https://www.google.com/maps/dir/${pontoPartida.lat},${pontoPartida.lng}/${coordsCaminho}/${pontoPartida.lat},${pontoPartida.lng}`;
+
+            const card = document.createElement("div");
+            card.className = "rota-card"; card.id = `card-rota-${idx}`; card.style.borderLeftColor = cor;
+            card.innerHTML = `
+                <div class="rota-header" onclick="toggleFiltroRota(${idx}, this)">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px">
+                        <span>EQUIPE ${idx+1}</span> <span>${(rota.distance/1000).toFixed(1)} km</span>
+                    </div>
+                    <small style="color:#666">${pts.length} vistorias</small>
+                </div>
+                <div class="rota-details">
+                    <ol style="padding-left:18px; font-size:12px; margin-bottom:10px">${pts.map(p => `<li>${p.nome}</li>`).join("")}</ol>
+                    <a href="${urlGps}" target="_blank" style="display:block; background:var(--primary); color:white; text-align:center; padding:10px; border-radius:5px; text-decoration:none; font-weight:bold; font-size:12px">ABRIR NO GPS</a>
+                    <button class="btn-copy" onclick="copiarTextoRota(${idx})"><i class="fas fa-copy"></i> COPIAR LISTA</button>
+                </div>`;
+            document.getElementById("container-rotas").appendChild(card);
+            
+            if(rota.geometry) {
+                const poly = L.polyline(decode(rota.geometry), {color:cor, weight:6});
+                poly.addTo(map); polilinhas.push(poly);
+            }
+        });
+
+        if(polilinhas.length > 0) map.fitBounds(new L.featureGroup(polilinhas).getBounds(), {padding:[50,50]});
 
     } catch(e) { 
-        alert("DICA: Desmarque 'Equilibrar Carga' ou aumente o número de veículos para 4 ou 5."); 
+        alert("Erro ao gerar rotas. Tente reduzir o número de unidades/veículos."); 
     } finally { 
-        btn.disabled = false; 
-        btn.innerHTML = '<i class="fas fa-route"></i> GERAR ROTAS'; 
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-route"></i> GERAR ROTAS'; 
     }
 }
+
 
     // Funções de Interface Auxiliares (Cópia, Filtros, Busca, etc - Originais mantidas)
     function copiarTextoRota(idx) {
