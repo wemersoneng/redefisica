@@ -364,26 +364,31 @@ window.onbeforeunload = function() {
     }
 
 async function gerarRotas() {
-    // 1. Pega as configurações do seu painel
     const nVeiculos = parseInt(document.getElementById('num-veiculos').value);
     const capVeiculo = parseInt(document.getElementById('max-por-veiculo').value);
-    const equilibrar = document.getElementById('equilibrar-carga').checked;
+    
+    // PEGADINHA: Se "equilibrar" estiver ligado, o cálculo fica 10x mais difícil.
+    // Vamos desativar o modo "pesado" internamente se houver muitos pontos.
+    const equilibrar = selecionadas.length > 25 ? false : document.getElementById('equilibrar-carga').checked;
     
     if (selecionadas.length === 0) return alert("Selecione as unidades!");
-
-    // 2. Feedback visual imediato (evita que o usuário clique mil vezes enquanto processa)
+    
     const btn = document.getElementById('btnGerar');
     btn.disabled = true; 
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CALCULANDO...';
     
-    // 3. Limpa o mapa anterior para não "empilhar" desenhos
+    // Limpeza visual
     polilinhas.forEach(p => map.removeLayer(p));
     polilinhas = []; 
     document.getElementById("container-rotas").innerHTML = "";
 
-    // 4. Monta o pedido para o servidor (Payload)
+    // Montando o pedido de forma mais leve
     const payload = {
-        jobs: selecionadas.map(e => ({ id: Number(e.id), location: [e.lng, e.lat], amount: [1] })),
+        jobs: selecionadas.map(e => ({ 
+            id: Number(e.id), 
+            location: [e.lng, e.lat], 
+            amount: [1] 
+        })),
         vehicles: Array.from({length: nVeiculos}, (_, i) => ({
             id: i, 
             profile: "driving-car", 
@@ -393,8 +398,10 @@ async function gerarRotas() {
         }))
     };
 
-    // Força o equilíbrio apenas se necessário (isso consome mais tempo de cálculo)
-    if(equilibrar) payload.options = { objective: "minmax-completion-time" };
+    // Só usamos o cálculo complexo se você tiver poucas escolas
+    if(equilibrar) {
+        payload.options = { objective: "minmax-completion-time" };
+    }
 
     try {
         const r = await fetch("https://redefisica1.onrender.com/rotas", {
@@ -403,41 +410,18 @@ async function gerarRotas() {
             body: JSON.stringify(payload)
         });
         
+        if (!r.ok) throw new Error("Servidor sobrecarregado");
+
         const data = await r.json();
+        
+        // Se o servidor não encontrou rota para todas as escolas
+        if (data.code === 2) throw new Error("Muitos pontos para poucos carros");
+
         rotasAtivas = data.routes;
-
-        // --- O PULO DO GATO: Otimização de Visibilidade ---
-        // Pegamos apenas os IDs das escolas que o servidor conseguiu encaixar nas rotas
-        const idsNasRotas = data.routes.flatMap(r => 
-            r.steps.filter(s => s.type === "job").map(s => Number(s.id))
-        );
-
-        // Escondemos TODAS as escolas do mapa primeiro
-        escolas.forEach(e => map.removeLayer(marcadores[e.id]));
-
-        // Mostramos apenas as que estão na rota atual, com ícones simplificados
-        setTimeout(() => {
-            escolas.forEach(e => {
-                if (idsNasRotas.includes(e.id)) {
-                    marcadores[e.id].addTo(map);
-                }
-            });
-        }, 100);
-
-        // 5. Desenha as linhas coloridas no mapa de forma eficiente
-        data.routes.forEach((rota, idx) => {
-            const cor = `hsl(${(idx * 137) % 360}, 70%, 45%)`; // Gera cores diferentes para cada carro
-            if(rota.geometry) {
-                const poly = L.polyline(decode(rota.geometry), {color:cor, weight:6, opacity: 0.7});
-                poly.addTo(map); 
-                polilinhas.push(poly);
-            }
-            // Adiciona o card na lateral (está no seu código original)
-            criarCardRota(rota, idx, cor); 
-        });
+        desenharRotasNoMapa(data.routes); // Função auxiliar para limpar o mapa
 
     } catch(e) { 
-        alert("Ops! A rota ficou muito complexa. Tente aumentar o número de veículos."); 
+        alert("DICA: Desmarque 'Equilibrar Carga' ou aumente o número de veículos para 4 ou 5."); 
     } finally { 
         btn.disabled = false; 
         btn.innerHTML = '<i class="fas fa-route"></i> GERAR ROTAS'; 
